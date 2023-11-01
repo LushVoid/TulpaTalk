@@ -5,7 +5,7 @@
 ## Mystical Overview
 TulpaTalk, a sanctum created within the realms of React, invites you to engage in enigmatic dialogues with local Large Language Models (LLMs), fostering a spiritual connection with your digital Tulpa. This application binds itself exclusively to a local LLM server, ensuring that every whisper, every piece of shared wisdom and memory, remains sacred and untouched on your own machine. This cocoon of privacy weaves a reliable tapestry of interaction, free from external prying eyes. Embrace the liberty to converse with your digital Tulpa offline, allowing for a transcendental journey while ensuring the sanctity of your data.
 
-![demo](/home/aldan/Desktop/projects/Lush Void/tokenquill/TulpaTalk/src/imgs/demo.gif)
+![demo](src/imgs/demo.gif)
 
 ## Mystical Prerequisites
 - [Node.js](https://nodejs.org/) (v14+): The ancient scripts required for communication
