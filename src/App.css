@@ -1,0 +1,497 @@
+body {
+  background-color: #0D1117;
+  color: #C9D1D9;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.App {
+  text-align: center;
+  background-color: #282c34;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.App * {
+  border-radius: 15px;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+t {
+  font-size: 2vw;
+  margin: 0px;
+  opacity: 61%;
+}
+h1 {
+  margin-bottom: 0px;
+}
+@keyframes blink {
+  0%, 100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.typing-dot {
+  display: inline-block;
+  margin-left: 2px;
+  animation: blink 1s infinite;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.App-header {
+  min-height: 40vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  position: sticky;
+  top: 0;
+  z-index: 1; /* Ensuring that .App-header is below .chat-box */
+}
+` `
+.App-link {
+  color: #1F6FEB;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.button-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: background-color 0.3s;
+  padding: 5px;
+  border-radius: 5px;
+  float: left;
+}
+
+.button-box:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.button-box span {
+  font-size: 0.75rem;
+  color: #ffffff;
+}
+
+.persona-button-box {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 10px;
+  z-index: 1000; /* or any high number */
+}
+
+.button-box .persona-button-box {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 10px;
+  z-index: 1000; /* or any high number */
+}
+
+.clear-chat-button-box {
+  position: absolute;
+  top: 60px; /* Adjust this value based on the actual height of your buttons + desired margin */
+  right: -6px;
+  margin: 10px;
+}
+
+
+.persona-settings {
+   min-width: 300px;
+   width: 50vw;
+   padding: 20px;
+   border-radius: 5px;
+   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+   margin: auto; /* Centers the element in the available space */
+   margin-top: 10%;
+}
+
+ul {
+  text-align: left;
+}
+.form-group {
+  margin-bottom: 15px;
+  max-width: 80vw;
+}
+
+.form-group textarea {
+  width: 100%;
+  box-sizing: border-box; /* Makes sure padding doesn't affect width */
+  resize: vertical; /* Allows user to manually resize vertically */
+}
+
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+.hidden {
+  display: none;
+}
+
+.chat-sidebar {
+  position: fixed;
+  width: 200px;
+  padding: 10px;
+  box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.1);
+  background-color:rgba(0, 0, 0, 0.1);
+  top: 0;
+  left: 0;
+  height: 100vh; /* This makes sure the sidebar spans the full height of the viewport */
+  overflow-y: auto; /* This adds a scrollbar if the content is too long */
+  z-index: 10; /* Adjust the value as needed */
+  transition: transform 0.3s ease-in-out;
+  transform: translateX(-77%);
+  overflow: hidden;
+}
+
+.chat-sidebar:hover {
+  transform: translateX(0);
+  background-color:rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+}
+
+.chat-sidebar h3 {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.chat-sidebar ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.chat-sidebar li {
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 5px;
+}
+
+.chat-sidebar li:hover {
+  background-color: rgba(250, 250, 250, 0.5);
+}
+
+.delete-chat-button {
+  background-color: rgba(50, 50, 50, 0.5);
+  border: none;
+  padding: 5px;
+  border-radius: 6px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  float: left;
+  display: flex; /* hide by default */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 2s ease-in-out, visibility 2s ease-in-out;
+}
+.chat-sidebar:hover .delete-chat-button {
+
+  opacity: 1;
+  visibility: visible;
+}
+
+#chatnames {
+  text-align: right;
+}
+
+.chat-sidebar-header h3 {
+  transition: opacity 0.3s;
+}
+
+.chat-sidebar-header button {
+  border-radius: 5px;
+  background-color: #00D1FF; /* cyberpunk blue */
+}
+
+
+.delete-chat-button:hover {
+  background-color: #ff4949;
+}
+
+.delete-chat-button svg {
+  width: 20px;
+  height: 20px;
+  color: white;
+}
+
+.selected-chat {
+  background-color: #4CAF50;
+  color:black;
+}
+
+
+#chaticon {
+  width: 20;
+  float: right;
+}
+.add-chat-button {
+  width: 33%;
+  padding: 8px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.add-chat-button:hover {
+  background-color: #e0e0e0;
+}
+/* This is an example, you may need to adjust the selector to match your setup */
+pre code {
+  white-space: pre-wrap !important;
+  word-wrap: break-word;
+  overflow-wrap: break-word !important;
+  word-break: break-all;
+  font-size: 80%;
+}
+
+pre {
+  background-color: black !important;
+  color: black;
+}
+
+
+.code-block-container {
+  position: relative;
+}
+
+.copy-button {
+  position: absolute;
+  right: 0;
+  top: 0;
+  border: none;
+  background: #ddd;
+  padding: 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: transform 0.15s ease;
+}
+.copy-button-2 {
+  transition: transform 0.15s ease;
+}
+.copy-button-2:hover {
+  background-color: #45a049;
+}
+.copy-button-2.clicked {
+  background-color: #45a049;
+  transform: scale(5); /* Enlarge the button */
+  color:white;
+}
+
+.copy-button.clicked {
+  transform: scale(1.2); /* Enlarge the button */
+  color:white;
+  background-color: #58A6FF;
+}
+
+.code-block {
+  /* Add any styles you want for your code block here */
+  color: #67ff30;
+  background-color: black;
+}
+
+
+
+input {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+select {
+  width: 61%;
+  padding: 8px;
+  box-sizing: border-box;
+  text-align: center;
+  font-size: 161%;
+  color: inherit;
+  background-color: transparent;
+  backdrop-filter: blur(5px);
+}
+select option {
+  background-color: rgba(0, 0, 0, 1.0); /* or any other color */
+}
+
+button {
+  padding: 10px 15px;
+  border: none;
+  background-color: #4CAF50;
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  max-width: 61vw;
+  min-width: 700px;
+  margin: 0 auto;
+}
+
+.chat-box {
+  border: 1px solid #30363D;
+  border-top: none;
+  font-size: 20px;
+  padding: 0.5vw;
+  height: 80vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  margin-top: -30vh; /* Adjusted to make .chat-box extend to the top */
+  position: relative;
+  z-index: 2; /* Ensuring that .chat-box is above .App-header */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0.1%, black 25%);
+  mask-image: linear-gradient(to bottom, transparent 0.1%, black 25%);
+
+}
+.invisible-element {
+  margin-top: 15vh;
+  height: 51vh; /* or whatever height you prefer */
+  display: block;
+}
+
+/* Scrollbar styling */
+.chat-box::-webkit-scrollbar {
+  width: 8px; /* Adjust the width of the scrollbar */
+}
+
+.chat-box::-webkit-scrollbar-track {
+  background-color: #30363D; /* Scrollbar track color */
+}
+
+.chat-box::-webkit-scrollbar-thumb {
+  background-color: #58A6FF; /* Scrollbar thumb color */
+  border-radius: 4px; /* Rounded corners for the scrollbar thumb */
+}
+
+.chat-box::-webkit-scrollbar-thumb:hover {
+  background-color: #1F6FEB; /* Scrollbar thumb color on hover */
+}
+
+.message-container {
+  display: flex;
+  flex-direction: column-reverse; /* Ensure new messages appear at the bottom */
+}
+
+.message {
+  padding: 5px 10px;
+  border-radius: 5px;
+  margin-bottom: 5px;
+  max-width: 70%;
+  word-break: break-word;
+  order: 1;
+}
+
+.message.bot {
+  background-color: rgba(40, 40, 40, 0.75);
+  border: 4px;
+  align-self: flex-start;
+  text-align:left;
+  opacity: 100%;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  text-shadow: 3
+}
+
+.message.user {
+  border-color: #3FB950;
+  border: 20px;
+  color: black;
+  align-self: flex-end;
+  text-align:right;
+  opacity: 95%;
+  background-color: #3FB950;
+  font-style: inherit;
+  color:white;
+}
+
+.input-container {
+  display: flex;
+  margin-top: 2px;
+}
+
+#ChatInput {
+  height: 5vh; /* Minimum height */
+  max-height: 7vh;
+  width: 90%;
+  background: none;
+  color:white;
+  font-style: inherit;
+  font-size: 15px;
+}
+
+input {
+  flex-grow: 1;
+  padding: 5px;
+  border-radius: 5px;
+  border: 1px solid #30363D;
+  color: #C9D1D9;
+  background-color: #161B22;
+  height: 3vw;
+  font-size: 20px;
+}
+
+button {
+  padding: 5px 10px;
+  margin-left: 5px;
+  background-color: #3FB950;
+  color: #0D1117;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+#send {
+  width: 10%;
+}
+
+button:hover {
+  background-color: #34A853;
+}
+
+.logo {
+  width: 250px; /* or whatever size you prefer */
+  height: auto;
+  float: right;
+}
