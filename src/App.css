@@ -166,17 +166,18 @@ ul {
 .chat-sidebar {
   position: fixed;
   width: 200px;
-  padding: 10px;
+
   box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.1);
-  background-color:rgba(0, 0, 0, 0.1);
+  background-color:rgba(0, 0, 0, 0.01);
   top: 0;
   left: 0;
   height: 100vh; /* This makes sure the sidebar spans the full height of the viewport */
   overflow-y: auto; /* This adds a scrollbar if the content is too long */
   z-index: 10; /* Adjust the value as needed */
-  transition: transform 0.3s ease-in-out;
+  transition: transform 0.3s ease-in-out, background-color 0.3s ease-in-out;
   transform: translateX(-77%);
   overflow: hidden;
+  border-radius: 0px 12px 12px 0px;
 }
 
 .chat-sidebar:hover {
@@ -192,14 +193,23 @@ ul {
 
 .chat-sidebar ul {
   list-style-type: none;
-  padding: 0;
+  text-align: left;
+  height: 5vh;
+  width: 100%;
 }
 
 .chat-sidebar li {
+  margin: 3px;
+  padding: 3px;
   cursor: pointer;
-  padding: 5px;
-  border-radius: 5px;
+  height: 50px;
+  width: 100%;
+  border-radius: 6px;
+  margin-left: -50px;
 }
+
+
+
 
 .chat-sidebar li:hover {
   background-color: rgba(250, 250, 250, 0.5);
@@ -217,16 +227,16 @@ ul {
   display: flex; /* hide by default */
   opacity: 0;
   visibility: hidden;
-  transition: opacity 2s ease-in-out, visibility 2s ease-in-out;
+  transition: opacity 1s ease-in-out, visibility 2s ease-in-out;
 }
-.chat-sidebar:hover .delete-chat-button {
-
-  opacity: 1;
+.chat-sidebar li:hover .delete-chat-button {
   visibility: visible;
+  opacity: 1;
 }
 
 #chatnames {
-  text-align: right;
+  color: white;
+  margin-left: 8%;
 }
 
 .chat-sidebar-header h3 {
@@ -252,13 +262,15 @@ ul {
 .selected-chat {
   background-color: #4CAF50;
   color:black;
+  z-index: 0;
 }
 
 
 #chaticon {
-  width: 20;
+  font-size: 5px;
   float: right;
 }
+
 .add-chat-button {
   width: 33%;
   padding: 8px;
@@ -375,7 +387,7 @@ button:hover {
   border-top: none;
   font-size: 20px;
   padding: 0.5vw;
-  height: 80vh;
+  height: 76vh;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -434,6 +446,16 @@ button:hover {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   text-shadow: 3
 }
+.message.typing {
+  background-color: #58A6FF;
+  border: 4px;
+  font-size: 12px;
+  align-self: flex-start;
+  text-align:left;
+  opacity: 100%;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  text-shadow: 6
+}
 
 .message.user {
   border-color: #3FB950;
@@ -450,6 +472,7 @@ button:hover {
 .input-container {
   display: flex;
   margin-top: 2px;
+  height: 8vh;
 }
 
 #ChatInput {
@@ -484,6 +507,7 @@ button {
 }
 #send {
   width: 10%;
+  height: 6vh;
 }
 
 button:hover {

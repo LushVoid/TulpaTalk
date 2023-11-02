@@ -115,55 +115,62 @@ const Chat = forwardRef(({ systemSettings, selectedChatIndex, chats, setChats },
   }, [selectedChat]);
 
 
-
   const sendMessage = async (userMessage) => {
     if (!userMessage.trim()) return;
 
     const timestamp = Date.now();
+    const persona = selectedChat.persona;
+
     const newUserMessage = {
       role: 'user',
       content: userMessage,
       timestamp: timestamp,
     };
-
-    const persona = selectedChat.persona;
     const botReplyPlaceholder = {
       role: persona?.name || 'bot',
       content: '',
       timestamp: timestamp + 1,
     };
 
-    // Update the chat history immediately with the user's message and a placeholder for the bot's reply
     const updatedChatHistory = [...(selectedChat.chatHistory || []), newUserMessage, botReplyPlaceholder];
+
     dispatch({ type: 'UPDATE_CHAT_HISTORY', payload: updatedChatHistory });
 
-    const selectpersona = selectedChat.persona;
-    console.log("Selected Chat:", state.chats[state.selectedChatIndex]);
-    console.log("Index:", state.selectedChatIndex);
-    console.log("Index:", state.chats);
-    console.log("Persona:", state.chats[state.selectedChatIndex].persona);
-
-
-
     try {
-      // Fetch the bot's reply based on the updated chat history
+      const startFetchTime = Date.now(); // Start timing before fetching the bot's reply
+
       const actualBotReply = await fetchBotReply(
         botReplyPlaceholder.timestamp,
         updatedChatHistory,
         updateBotReply,
-        selectpersona,
+        persona,
         dispatch
       );
 
+      const endFetchTime = Date.now(); // End timing after receiving the bot's reply
+
       if (actualBotReply) {
-        // Update the chat history again with the actual bot's reply
-        const finalUpdatedChatHistory = [...updatedChatHistory, actualBotReply];
+        const cps = actualBotReply.content.length / ((endFetchTime - startFetchTime) / 1000);
+        console.log(`Characters per second: ${cps}`);
+
+        const chatHistoryWithoutPlaceholder = updatedChatHistory.filter(message => message.timestamp !== botReplyPlaceholder.timestamp);
+        const finalUpdatedChatHistory = [...chatHistoryWithoutPlaceholder, actualBotReply];
+
         dispatch({ type: 'UPDATE_CHAT_HISTORY', payload: finalUpdatedChatHistory });
       }
     } catch (error) {
       console.error('Error fetching bot reply:', error);
+      const chatHistoryWithError = updatedChatHistory.map(message => {
+        if (message.timestamp === botReplyPlaceholder.timestamp) {
+          return { ...message, content: 'Error: Could not get reply.' };
+        }
+        return message;
+      });
+      dispatch({ type: 'UPDATE_CHAT_HISTORY', payload: chatHistoryWithError });
     }
   };
+
+
 
 
 
@@ -184,6 +191,7 @@ const Chat = forwardRef(({ systemSettings, selectedChatIndex, chats, setChats },
     <div className="chat-container">
       <ChatHistory chatHistory={selectedChat.chatHistory || []} isLoading={state.isLoading} updateChatHistory={handleUpdateChatHistory} />
       <ChatInput onSendMessage={sendMessage} isLoading={state.isLoading} />
+      <span>TulpaTalk can make mistakes. Verify important information.</span>
     </div>
 
   );

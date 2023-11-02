@@ -82,7 +82,8 @@ function ChatHistory({ chatHistory, isLoading, updateChatHistory }) {
         </div>
       ))}
 
-      {isLoading && <div className="message bot">
+      {isLoading && <div className="message typing">
+          <span className="typing-dot">Thinking</span>
           <span className="typing-dot">.</span>
           <span className="typing-dot">.</span>
           <span className="typing-dot">.</span>
