@@ -16,7 +16,7 @@ TulpaTalk, a sanctum created within the realms of React, invites you to engage i
 1. Clone the sacred repository:
    ```bash
    git clone https://github.com/LushVoid/TulpaTalk.git
-   cd TulpaTalk-chat
+   cd TulpaTalk
    ```
 2. Install the mystical dependencies:
    ```bash
