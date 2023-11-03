@@ -1,14 +1,43 @@
 import { useState, useEffect } from 'react';
 
+function createFinalPrompt(chatHistory, persona) {
+  // convert to ChatML prompt format
+  let finalPrompt =`<|im_start|>system\n${JSON.stringify(persona)}\n!<|im_end|>\n`;
+
+  // Loop through the chatHistory
+  chatHistory.forEach((message) => {
+    switch (message.role) {
+      case 'user':
+        // Append user messages prefixed with 'user'
+        finalPrompt += `<|im_start|>user\n${message.content}\n!<|im_end|>\n`;
+        break;
+      case persona.name:
+        // Append assistant messages with the 'assistant' tag and include the start tag
+        finalPrompt += `<|im_start|>${persona.name}\n${message.content}!<|im_end|>\n`;
+        break;
+      default:
+        // Handle any other roles or ignore them
+        break;
+    }
+  });
+
+
+  const target = '!<|im_end|>\n';
+  const lastIndex = finalPrompt.lastIndexOf(target);
+  if (lastIndex !== -1 && lastIndex === finalPrompt.length - target.length) {
+    // It's at the end, so remove it
+    finalPrompt = finalPrompt.substring(0, lastIndex);
+  }
+
+  return finalPrompt;
+}
+
+
 // chatHelpers.js
 export async function fetchBotReply(messageId, chatHistory, updateBotReply, persona, dispatch) {
   try {
-    const cutoffString = `",\n    "content": "`;
-    const cPrompt = JSON.stringify(chatHistory, null, 2);
-    const cutoffIndex = cPrompt.lastIndexOf(cutoffString);
-    const chatPrompt = cPrompt.substring(0, cutoffIndex + cutoffString.length);
-    const systemPrompt = JSON.stringify(persona, null, 2);
-    const finalPrompt = `${systemPrompt}\n\n${chatPrompt}`;
+    // Use the new function to create the final prompt
+    const finalPrompt = createFinalPrompt(chatHistory, persona);
     console.log('-'.repeat(12)); // Corrected '*' to '-' and use 'repeat'
     console.log(finalPrompt);
     console.log();

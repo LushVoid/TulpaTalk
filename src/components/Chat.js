@@ -191,7 +191,7 @@ const Chat = forwardRef(({ systemSettings, selectedChatIndex, chats, setChats },
     <div className="chat-container">
       <ChatHistory chatHistory={selectedChat.chatHistory || []} isLoading={state.isLoading} updateChatHistory={handleUpdateChatHistory} />
       <ChatInput onSendMessage={sendMessage} isLoading={state.isLoading} />
-      <span>TulpaTalk can make mistakes. Verify important information.</span>
+      <span>TulpaTalk may not always be accurate, it's essential to double-check information.</span>
     </div>
 
   );
