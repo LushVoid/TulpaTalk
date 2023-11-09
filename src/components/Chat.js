@@ -5,116 +5,20 @@ import { fetchBotReply } from './hooks';
 import { Ollama } from "langchain/llms/ollama";
 import { BufferMemory, ChatMessageHistory } from "langchain/memory";
 
-const chatReducer = (state, action) => {
-  switch (action.type) {
-    case 'SEND_USER_MESSAGE':
-      return {
-        ...state,
-        chats: state.chats.map((chat, index) =>
-          index === state.selectedChatIndex
-            ? {
-                ...chat,
-                chatHistory: [...(chat.chatHistory || []), action.payload.userMessage, action.payload.botReply],
-              }
-            : chat
-        ),
-        isLoading: true,
-      };
-    case 'UPDATE_BOT_REPLY':
-      return {
-        ...state,
-        chats: state.chats.map((chat, index) =>
-          index === state.selectedChatIndex
-            ? {
-                ...chat,
-                chatHistory: (chat.chatHistory || []).map((message) =>
-                  message.role === (state.chats[state.selectedChatIndex].persona?.name || '') && message.timestamp === action.payload.timestamp
-                    ? { ...message, content: action.payload.botReplyText }
-                    : message
-                ),
-              }
-            : chat
-        ),
-        isLoading: action.payload.isBotTyping,
-      };
-    case 'SET_LOADING_STATE':
-      return {
-        ...state,
-        isLoading: action.payload,
-      };
-    case 'CLEAR_CHAT':
-      return {
-        ...state,
-        chats: state.chats.map((chat, index) =>
-          index === state.selectedChatIndex ? { ...chat, chatHistory: [] } : chat
-        ),
-      };
-    case 'SET_SELECTED_CHAT_INDEX':
-      return {
-        ...state,
-        selectedChatIndex: action.payload,
-      };
-    case 'UPDATE_CHAT_HISTORY':
-      return {
-        ...state,
-        chats: state.chats.map((chat, index) =>
-          index === state.selectedChatIndex ? { ...chat, chatHistory: action.payload } : chat
-        ),
-      };
-    case 'UPDATE_CHATS':
-      return {
-        ...state,
-        chats: action.payload,
-      };
-    case 'RENAME_CHAT':
-      // Clone the chats array
-      const newChats = [...state.chats];
-      // Update the chat's name using the provided index
-      if (newChats[action.payload.index]) {
-        newChats[action.payload.index].name = action.payload.newName;
-      }
-      return { ...state, chats: newChats };
 
+const Chat = forwardRef(({ selectedChatIndex, chats, dispatch, saveChats, isLoading, setChats }, ref) => {
 
-      case 'UPDATE_PARTIAL_BOT_REPLY':
-    return {
-      ...state,
-      chats: state.chats.map((chat, index) =>
-        index === state.selectedChatIndex
-          ? {
-              ...chat,
-              chatHistory: chat.chatHistory.map((message) =>
-                message.timestamp === action.payload.timestamp
-                  ? { ...message, content: message.content + action.payload.chunk }
-                  : message
-              ),
-            }
-          : chat
-      ),
-    };
-
-
-    default:
-      return state;
-  }
-};
-
-const Chat = forwardRef(({ systemSettings, selectedChatIndex, chats, setChats }, ref) => {
-  const defaultState = {
-    chats: JSON.parse(localStorage.getItem('chats')) || [chats[0]],
-    selectedChatIndex: 0,
-    isLoading: false,
-  };
-  const [state, dispatch] = useReducer(chatReducer, defaultState);
 
   const messageEndRef = useRef(null);
 
   // Guard against undefined selectedChat
-  const selectedChat = state.chats[state.selectedChatIndex] || {};
+  console.log('index', selectedChatIndex);
+  let selectedChat = chats[selectedChatIndex];
+  console.log(chats);
 
   const ollama = new Ollama({
     baseUrl: "http://localhost:11434",
-    model: selectedChat.persona.model,
+    model: chats[selectedChatIndex].persona.model,
   });
 
   useImperativeHandle(ref, () => ({
@@ -123,7 +27,7 @@ const Chat = forwardRef(({ systemSettings, selectedChatIndex, chats, setChats },
 
   useEffect(() => {
     dispatch({ type: 'SET_SELECTED_CHAT_INDEX', payload: selectedChatIndex });
-  }, [selectedChatIndex, state.chats]);
+  }, [selectedChatIndex, chats]);
 
   useEffect(() => {
     if (selectedChat.chatHistory) {
@@ -133,6 +37,7 @@ const Chat = forwardRef(({ systemSettings, selectedChatIndex, chats, setChats },
 
   useEffect(() => {
     dispatch({ type: 'UPDATE_CHATS', payload: chats });
+    setChats(chats);
   }, [chats]);
 
 
@@ -149,8 +54,9 @@ const Chat = forwardRef(({ systemSettings, selectedChatIndex, chats, setChats },
   const sendMessage = async (userMessage) => {
     if (!userMessage.trim()) return;
 
-    const { persona, chatHistory = [], name } = selectedChat;
+    const { persona, chatHistory , name } = chats[selectedChatIndex];
     const timestamp = Date.now();
+    const timestamp2 = timestamp+5;
 
     const newUserMessage = {
       role: 'user',
@@ -161,29 +67,29 @@ const Chat = forwardRef(({ systemSettings, selectedChatIndex, chats, setChats },
     const botReply = {
       role: 'assistant',
       content: '',
-      timestamp: Date.now(), // Set the timestamp immediately to the time message was sent
+      timestamp: timestamp2, // Set the timestamp immediately to the time message was sent
     };
 
     try {
       dispatch({ type: 'SET_LOADING_STATE', payload: true });
       // Add new user message and a placeholder for bot reply to chat history
-      dispatch({
-        type: 'UPDATE_CHAT_HISTORY',
-        payload: [...chatHistory, newUserMessage, botReply]
-      });
-
       const chatHistoryJson = JSON.stringify(chatHistory);
-      const promptForOllama = `<|chathistory.json|>${chatHistoryJson}</s>\n${userMessage}`;
+      const promptForOllama = `<|chathistory|>${chatHistoryJson}</s>\n${userMessage}`;
 
       const stream = await ollama.stream(promptForOllama);
       let finalResponse = '';
       let bt = botReply.timestamp;
 
+      dispatch({
+        type: 'UPDATE_CHAT_HISTORY',
+        payload: [...chatHistory, newUserMessage, botReply]
+      });
+
       for await (const chunk of stream) {
         botReply.content += chunk;
         dispatch({
           type: 'UPDATE_PARTIAL_BOT_REPLY',
-          payload: { bt, chunk }
+          payload: { timestamp2, chunk }
         });
       }
 
@@ -191,29 +97,36 @@ const Chat = forwardRef(({ systemSettings, selectedChatIndex, chats, setChats },
       //botReply.content = finalResponse;
       botReply.timestamp = Date.now();
 
+    } catch (error) {
+      console.error("Error sending message:", error);
+      // Handle error state, such as displaying a message to the user
+    } finally {
       // Update the chat history with the final bot reply
       dispatch({
         type: 'UPDATE_CHAT_HISTORY',
         payload: [...chatHistory, newUserMessage, botReply]
       });
-    } catch (error) {
-      console.error("Error sending message:", error);
-      // Handle error state, such as displaying a message to the user
-    } finally {
+      console.log('chatHistory');
+      console.log(chatHistory);
       dispatch({ type: 'SET_LOADING_STATE', payload: false });
     }
   };
 
-
   useEffect(() => {
-    localStorage.setItem('chats', JSON.stringify(state.chats));
-  }, [state.chats]);
+    // This code runs after `state` has been updated
+    localStorage.setItem('chats', JSON.stringify(chats));
+    console.log('State after update:', chats);
+    setChats(chats);
+    //setChats(state.chats);
+    // Perform any other action after state update
+  }, [chats]); // This will only re-run if `state` changes
+
 
 
   return (
     <div className="chat-container">
-      <ChatHistory chatHistory={selectedChat.chatHistory} isLoading={state.isLoading} />
-      <ChatInput onSendMessage={sendMessage} isLoading={state.isLoading} />
+      <ChatHistory chatHistory={chats[selectedChatIndex].chatHistory} isLoading={isLoading} />
+      <ChatInput onSendMessage={sendMessage} isLoading={isLoading} />
       <span>TulpaTalk may not always be accurate, it's essential to double-check information.</span>
     </div>
 

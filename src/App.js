@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useReducer, } from 'react';
 import Chat from './components/Chat';
 import ChatControlButtons from './components/ChatControlButtons';
 import PersonaSettings from './components/PersonaSettings';
@@ -7,20 +7,6 @@ import './App.css';
 import Logo from './imgs/QuillBot.png';
 import tq from './persona';
 import useChat from './hooks/useChat';
-
-function newSysPrompt(modelfile, systemprompt) {
-  // Regular expression to match the SYSTEM line and any number of following lines
-  // until another block is detected or end of string
-  const systemSectionRegex = /(SYSTEM\s*"""\s*)(.*?)(\s*"""(?=\s*(?:PARAMETER|TEMPLATE|FROM|$)))/gs;
-
-  // Replacement string with new system prompt enclosed in triple quotes
-  const replacement = `$1${systemprompt}$3`;
-
-  // Replace the existing SYSTEM section with the new system prompt
-  const newModelfile = modelfile.replace(systemSectionRegex, replacement);
-
-  return newModelfile;
-}
 
 async function showInfo(modelName) {
   try {
@@ -45,12 +31,114 @@ async function showInfo(modelName) {
   }
 }
 
+const chatReducer = (state, action) => {
+  switch (action.type) {
+    case 'SEND_USER_MESSAGE':
+      return {
+        ...state,
+        chats: state.chats.map((chat, index) =>
+          index === state.selectedChatIndex
+            ? {
+                ...chat,
+                chatHistory: [...(chat.chatHistory || []), action.payload.userMessage, action.payload.botReply],
+              }
+            : chat
+        ),
+        isLoading: true,
+      };
+    case 'UPDATE_BOT_REPLY':
+      return {
+        ...state,
+        chats: state.chats.map((chat, index) =>
+          index === state.selectedChatIndex
+            ? {
+                ...chat,
+                chatHistory: (chat.chatHistory || []).map((message) =>
+                  message.role === (state.chats[state.selectedChatIndex].persona?.name || '') && message.timestamp === action.payload.timestamp
+                    ? { ...message, content: action.payload.botReplyText }
+                    : message
+                ),
+              }
+            : chat
+        ),
+        isLoading: action.payload.isBotTyping,
+      };
+    case 'SET_LOADING_STATE':
+      return {
+        ...state,
+        isLoading: action.payload,
+      };
+    case 'CLEAR_CHAT':
+      return {
+        ...state,
+        chats: state.chats.map((chat, index) =>
+          index === state.selectedChatIndex ? { ...chat, chatHistory: [] } : chat
+        ),
+      };
+    case 'SET_SELECTED_CHAT_INDEX':
+      return {
+        ...state,
+        selectedChatIndex: action.payload,
+      };
+    case 'UPDATE_CHAT_HISTORY':
+      return {
+        ...state,
+        chats: state.chats.map((chat, index) =>
+          index === state.selectedChatIndex ? { ...chat, chatHistory: action.payload } : chat
+        ),
+      };
+    case 'UPDATE_CHATS':
+      return {
+        ...state,
+        chats: action.payload,
+      };
+    case 'RENAME_CHAT':
+      // Clone the chats array
+      const newChats = [...state.chats];
+      // Update the chat's name using the provided index
+      if (newChats[action.payload.index]) {
+        newChats[action.payload.index].name = action.payload.newName;
+      }
+      return { ...state, chats: newChats };
+
+
+      case 'UPDATE_PARTIAL_BOT_REPLY':
+    return {
+      ...state,
+      chats: state.chats.map((chat, index) =>
+        index === state.selectedChatIndex
+          ? {
+              ...chat,
+              chatHistory: chat.chatHistory.map((message) =>
+                message.timestamp === action.payload.timestamp
+                  ? { ...message, content: message.content + action.payload.chunk }
+                  : message
+              ),
+            }
+          : chat
+      ),
+    };
+
+
+    default:
+      return state;
+  }
+};
 
 function App() {
   const [showSettings, setShowSettings] = useState(false);
-  const { chats, setChats, selectedChatIndex, setSelectedChatIndex } = useChat();
+  const { chats, setChats, selectedChatIndex, setSelectedChatIndex, saveChats, saveSelectedChatIndex } = useChat();
   const chatRef = useRef();
   const [models, setModels] = useState([]);
+  const defaultState = {
+    chats: chats,
+    selectedChatIndex: selectedChatIndex,
+    isLoading: false,
+  };
+  const [state, dispatch] = useReducer(chatReducer, defaultState);
+
+
+
 
   console.log('rendered app');
 
@@ -88,8 +176,6 @@ function App() {
     }
   };
 
-
-
   const updateDefaultPersonaModel = (modelName) => {
     const updatedChats = [...chats];
     const defaultPersona = updatedChats[0]?.persona;
@@ -102,26 +188,20 @@ function App() {
     }
   };
 
-  useEffect(() => {
-    fetchLocalModels();
-  }, []); // Empty dependency array means this effect will only run once after the initial render
-
   const handleAddChat = () => {
-    setChats((prevChats) => {
-      const currentChat = chats[selectedChatIndex];
-      console.log('adding chat');
-      console.log(chats);
-      console.log('aaaaaaaaaaaaaaaaaa');
-      const newChat = {
-        ...currentChat, // Copy all properties from the current chat
-        chatHistory: [], // Set an empty chat history
-        name: 'New Chat' // Set a new name (optional)
-      };
+    const currentChat = chats[selectedChatIndex];
+    console.log('adding chat');
 
-      const updatedChats = [...prevChats, newChat];
-      setSelectedChatIndex(updatedChats.length - 1);
-      return updatedChats;
-    });
+    const newChat = {
+      ...currentChat,
+      name:'New Chat',
+      chatHistory:[],
+    };
+    const updatedChats = [...chats, newChat];
+    console.log(updatedChats);
+    setChats(updatedChats);
+    state.chats = updatedChats;
+    // setSelectedChatIndex(updatedChats.length - 1); // Uncomment this if you want the new chat to be selected immediately after adding
   };
 
 
@@ -140,35 +220,15 @@ function App() {
     }
   };
 
-
-  const handleUpdateChatHistory = (chatIndex, newMessage) => {
-    if (chatIndex >= 0 && chatIndex < chats.length) {
-      setChats(chats => {
-        const updatedChats = [...chats];
-        const chatToUpdate = updatedChats[chatIndex];
-        if (chatToUpdate) {
-          chatToUpdate.chatHistory = [...chatToUpdate.chatHistory, newMessage];
-        } else {
-          console.error('Chat to update not found');
-        }
-        return updatedChats;
-      });
-      console.log('Chat history updated');
-    } else {
-      console.error('Invalid chat index');
-    }
-  };
-
   useEffect(() => {
+    fetchLocalModels();
     const savedChats = localStorage.getItem('chats');
     if (savedChats) {
       setChats(JSON.parse(savedChats));
     }
   }, []); // Load chats from local storage on mount
 
-  useEffect(() => {
-    localStorage.setItem('chats', JSON.stringify(chats));
-  }, [chats]); // Save chats to local storage on change
+
 
 
   return (
@@ -192,11 +252,12 @@ function App() {
         <div className={`chat-section ${showSettings ? 'hidden' : ''}`}>
         <Chat
           ref={chatRef}
-          systemSettings={selectedChat.persona}
           selectedChatIndex={selectedChatIndex}
-          chats={chats}
+          chats={state.chats}
+          isLoading={state.isLoading}
+          dispatch={dispatch}
+          saveChats={saveChats}
           setChats={setChats}
-          updateChatHistory={handleUpdateChatHistory}
           />
         </div>
         {showSettings && <PersonaSettings persona={selectedChat.persona} models={models} onChange={handlePersonaChange} onSubmit={handleSaveSettings} updateModels={fetchLocalModels}/>}

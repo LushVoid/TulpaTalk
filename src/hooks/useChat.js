@@ -55,6 +55,11 @@ function useChat() {
     saveSelectedChatIndex();
   }, [selectedChatIndex, saveSelectedChatIndex]);
 
+  useEffect(() => {
+    localStorage.setItem('chats', JSON.stringify(chats));
+  }, [chats]);
+
+
   return { chats, setChats, selectedChatIndex, setSelectedChatIndex, saveChats, saveSelectedChatIndex };
 }
 
