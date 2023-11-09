@@ -1,0 +1,879 @@
+// AppHeaderundefinedjs
+import React from 'react';
+import Logo from './imgs/QuillBot.png';
+import ChatControlButtons from './components/ChatControlButtons';
+
+export default function AppHeader({ personaName, onPersonaClick }) {
+  return (
+    <header className="App-header">
+      <img src={Logo} alt="TokenQuill Logo" className="logo" />
+      <h1>{personaName}</h1>
+      <ChatControlButtons onPersonaClick={onPersonaClick} />
+    </header>
+  );
+}
+import React from 'react';
+import IconButton from '@mui/material/IconButton';
+
+
+function ButtonBox({ icon, text, onClick, className }) {
+  return (
+    <div className={`button-box ${className}`} onClick={onClick}>
+      <IconButton color="inherit">
+        {icon}
+      </IconButton>
+      <span>{text}</span>
+    </div>
+  );
+}
+
+export default ButtonBox;
+// ChatControlButtons.js
+import React from 'react';
+import ButtonBox from './ButtonBox';
+import AccountBoxIcon from '@mui/icons-material/AccountBox';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+
+const ChatControlButtons = ({ onPersonaClick, }) => (
+  <>
+    <ButtonBox
+      icon={<AccountBoxIcon />}
+      text="Persona"
+      onClick={onPersonaClick}
+      className="persona-button-box"
+    />
+  </>
+);
+
+export default ChatControlButtons;
+import React, { useLayoutEffect, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import { CodeBlock } from './CodeBlock';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+
+function transformCodeInput(text) {
+  if (typeof text !== 'string') {
+    if (text === undefined) {
+      console.warn('Received undefined as input for transformCodeInput');
+      return '';
+    }
+    console.error('Expected a string as input for transformCodeInput:', text);
+    return '';
+  }
+  const codeRegex = /code\('(.+?)'\)/g;
+  return text.replace(codeRegex, '```$1```');
+}
+
+
+function ChatHistory({ chatHistory, isLoading, updateChatHistory }) {
+  const chatBoxRef = useRef(null);
+  const previousMessageIds = useRef(chatHistory.map(message => message.timestamp));
+  const intervalIdRef = useRef(null);
+
+  const handleCopyClick = (text) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  const scrollToBottom = () => {
+    if (chatBoxRef.current) {
+      chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+    }
+  };
+
+  useLayoutEffect(() => {
+    const hasNewMessage = chatHistory.length > previousMessageIds.current.length;
+    const hasUpdatedMessage = chatHistory.some((message, index) => {
+      return message.timestamp !== previousMessageIds.current[index];
+    });
+
+    if (hasNewMessage || hasUpdatedMessage) {
+      scrollToBottom();
+    }
+
+    // Update the previousMessageIds ref for the next render
+    previousMessageIds.current = chatHistory.map(message => message.timestamp);
+  }, [chatHistory]);
+
+  useEffect(() => {
+    if (isLoading && intervalIdRef.current === null) {
+      intervalIdRef.current = setInterval(scrollToBottom, 6000);
+    } else if (!isLoading && intervalIdRef.current !== null) {
+      clearInterval(intervalIdRef.current);
+      intervalIdRef.current = null;
+    }
+
+    return () => {
+      if (intervalIdRef.current !== null) {
+        clearInterval(intervalIdRef.current);
+      }
+    };
+  }, [isLoading]);
+
+
+  return (
+    <div ref={chatBoxRef} className="chat-box">
+      <div className="invisible-element" />
+      {chatHistory.map((message) => (
+        <div key={message.timestamp} className={`message ${message.role === 'user' ? 'user' : 'bot'}`}>
+          <div className="message-actions">
+            <ContentCopyIcon className="copy-button-2" onClick={() => handleCopyClick(message.content)} style={{ cursor: 'pointer' }} />
+          </div>
+          <div className="message-content">
+            <ReactMarkdown
+              components={{
+                code: CodeBlock,
+              }}
+            >
+              {transformCodeInput(message.content)}
+            </ReactMarkdown>
+          </div>
+        </div>
+      ))}
+
+      {isLoading && <div className="message typing">
+          <span className="typing-dot">Thinking</span>
+          <span className="typing-dot">.</span>
+          <span className="typing-dot">.</span>
+          <span className="typing-dot">.</span>
+        </div>}
+    </div>
+  );
+}
+
+export default ChatHistory;
+import React, { useRef, useCallback } from 'react';
+import SendIcon from '@mui/icons-material/Send';
+
+
+const ChatInput = React.memo(function ChatInput({ onSendMessage, isLoading }) {
+  const textareaRef = useRef(null);
+
+  const handleKeyPress = useCallback((event) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      if (!isLoading) {
+        onSendMessage(textareaRef.current.value);
+        textareaRef.current.value = '';
+      }
+    }
+  }, [onSendMessage, isLoading]);
+
+  const handleInput = useCallback((event) => {
+    const textarea = event.target;
+    textarea.style.height = 'auto';
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }, []);
+
+  const handleSendClick = () => {
+    if (!isLoading) {
+      onSendMessage(textareaRef.current.value);
+      textareaRef.current.value = '';
+    }
+  };
+
+  return (
+    <div className="input-container">
+      <textarea
+        ref={textareaRef}
+        id="ChatInput"
+        onKeyPress={handleKeyPress}
+        onInput={handleInput}
+      />
+      {!isLoading && <button id='send' onClick={handleSendClick}><SendIcon /></button>}
+    </div>
+  );
+});
+
+export default ChatInput;
+import React, { useEffect, useRef, useReducer, forwardRef, useImperativeHandle, useCallback } from 'react';
+import ChatInput from './ChatInput';
+import ChatHistory from './ChatHistory';
+import { fetchBotReply } from './hooks';
+
+
+const defaultState = {
+  chats: JSON.parse(localStorage.getItem('chats')) || [],
+  selectedChatIndex: 0,
+  isLoading: false,
+};
+
+const chatReducer = (state = defaultState, action) => {
+  switch (action.type) {
+    case 'SEND_USER_MESSAGE':
+      return {
+        ...state,
+        chats: state.chats.map((chat, index) =>
+          index === state.selectedChatIndex
+            ? {
+                ...chat,
+                chatHistory: [...(chat.chatHistory || []), action.payload.userMessage, action.payload.botReply],
+              }
+            : chat
+        ),
+        isLoading: true,
+      };
+    case 'UPDATE_BOT_REPLY':
+      return {
+        ...state,
+        chats: state.chats.map((chat, index) =>
+          index === state.selectedChatIndex
+            ? {
+                ...chat,
+                chatHistory: (chat.chatHistory || []).map((message) =>
+                  message.role === (state.chats[state.selectedChatIndex].persona?.name || '') && message.timestamp === action.payload.timestamp
+                    ? { ...message, content: action.payload.botReplyText }
+                    : message
+                ),
+              }
+            : chat
+        ),
+        isLoading: action.payload.isBotTyping,
+      };
+    case 'SET_LOADING_STATE':
+      return {
+        ...state,
+        isLoading: action.payload,
+      };
+    case 'CLEAR_CHAT':
+      return {
+        ...state,
+        chats: state.chats.map((chat, index) =>
+          index === state.selectedChatIndex ? { ...chat, chatHistory: [] } : chat
+        ),
+      };
+    case 'SET_SELECTED_CHAT_INDEX':
+      return {
+        ...state,
+        selectedChatIndex: action.payload,
+      };
+    case 'UPDATE_CHAT_HISTORY':
+      return {
+        ...state,
+        chats: state.chats.map((chat, index) =>
+          index === state.selectedChatIndex ? { ...chat, chatHistory: action.payload } : chat
+        ),
+      };
+    case 'UPDATE_CHATS':
+      return {
+        ...state,
+        chats: action.payload,
+      };
+
+    default:
+      return state;
+  }
+};
+
+const Chat = forwardRef(({ systemSettings, selectedChatIndex, chats, setChats }, ref) => {
+  const [state, dispatch] = useReducer(chatReducer, defaultState);
+
+
+  const messageEndRef = useRef(null);
+
+  // Guard against undefined selectedChat
+  const selectedChat = state.chats[state.selectedChatIndex] || {};
+
+  useImperativeHandle(ref, () => ({
+    clearChat: () => dispatch({ type: 'CLEAR_CHAT' }),
+  }));
+
+  useEffect(() => {
+    dispatch({ type: 'SET_SELECTED_CHAT_INDEX', payload: selectedChatIndex });
+  }, [selectedChatIndex, state.chats]);
+
+  useEffect(() => {
+    if (selectedChat.chatHistory) {
+      scrollToBottom();
+    }
+  }, [selectedChat.chatHistory]);
+
+  useEffect(() => {
+    dispatch({ type: 'UPDATE_CHATS', payload: chats });
+  }, [chats]);
+
+
+  const scrollToBottom = () => {
+    messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const selectedChatRef = useRef(selectedChat);
+  useEffect(() => {
+    selectedChatRef.current = selectedChat;
+  }, [selectedChat]);
+
+
+  const sendMessage = async (userMessage) => {
+    if (!userMessage.trim()) return;
+
+    const timestamp = Date.now();
+    const persona = selectedChat.persona;
+
+    const newUserMessage = {
+      role: 'user',
+      content: userMessage,
+      timestamp: timestamp,
+    };
+    const botReplyPlaceholder = {
+      role: persona?.name || 'bot',
+      content: '',
+      timestamp: timestamp + 1,
+    };
+
+    const updatedChatHistory = [...(selectedChat.chatHistory || []), newUserMessage, botReplyPlaceholder];
+
+    dispatch({ type: 'UPDATE_CHAT_HISTORY', payload: updatedChatHistory });
+
+    try {
+      const startFetchTime = Date.now(); // Start timing before fetching the bot's reply
+
+      const actualBotReply = await fetchBotReply(
+        botReplyPlaceholder.timestamp,
+        updatedChatHistory,
+        updateBotReply,
+        persona,
+        dispatch
+      );
+
+      const endFetchTime = Date.now(); // End timing after receiving the bot's reply
+
+      if (actualBotReply) {
+        const cps = actualBotReply.content.length / ((endFetchTime - startFetchTime) / 1000);
+        console.log(`Characters per second: ${cps}`);
+
+        const chatHistoryWithoutPlaceholder = updatedChatHistory.filter(message => message.timestamp !== botReplyPlaceholder.timestamp);
+        const finalUpdatedChatHistory = [...chatHistoryWithoutPlaceholder, actualBotReply];
+
+        dispatch({ type: 'UPDATE_CHAT_HISTORY', payload: finalUpdatedChatHistory });
+      }
+    } catch (error) {
+      console.error('Error fetching bot reply:', error);
+      const chatHistoryWithError = updatedChatHistory.map(message => {
+        if (message.timestamp === botReplyPlaceholder.timestamp) {
+          return { ...message, content: 'Error: Could not get reply.' };
+        }
+        return message;
+      });
+      dispatch({ type: 'UPDATE_CHAT_HISTORY', payload: chatHistoryWithError });
+    }
+  };
+
+
+
+
+
+  const updateBotReply = useCallback((timestamp, botReplyText, isBotTyping) => {
+    dispatch({ type: 'UPDATE_BOT_REPLY', payload: { timestamp, botReplyText, isBotTyping } });
+  }, [dispatch]);
+
+  useEffect(() => {
+    localStorage.setItem('chats', JSON.stringify(state.chats));
+  }, [state.chats]);
+
+  const handleUpdateChatHistory = (updatedHistory) => {
+    dispatch({ type: 'UPDATE_CHAT_HISTORY', payload: updatedHistory });
+  };
+
+
+  return (
+    <div className="chat-container">
+      <ChatHistory chatHistory={selectedChat.chatHistory || []} isLoading={state.isLoading} updateChatHistory={handleUpdateChatHistory} />
+      <ChatInput onSendMessage={sendMessage} isLoading={state.isLoading} />
+      <span>TulpaTalk may not always be accurate, it's essential to double-check information.</span>
+    </div>
+
+  );
+});
+
+export default React.memo(Chat);
+import React, { forwardRef } from 'react';
+import Chat from './Chat';
+
+const ChatSection = forwardRef(({ systemSettings, selectedChat, isHidden }, ref) => (
+  <div className={`chat-section ${isHidden ? 'hidden' : ''}`}>
+    <Chat
+      ref={ref}
+      systemSettings={systemSettings}
+      selectedChat={selectedChat}
+      chatHistory={selectedChat?.chatHistory}
+      setChatHistory={(newChatHistory) => {
+        const updatedChat = { ...selectedChat, chatHistory: newChatHistory };
+        // Call setChats here to update the chat in the chats array
+      }}
+    />
+  </div>
+));
+
+export default ChatSection;
+import React, { useState } from 'react';
+import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import '../App.css';
+
+export function CodeBlock({ node, inline, className, children, ...props }) {
+  const code = inline ? children : node.children[0].value;
+  const language = className ? className.replace('language-', '') : null;
+  const [isClicked, setIsClicked] = useState(false);
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(code);
+    setIsClicked(true);
+    setTimeout(() => setIsClicked(false), 1000); // Reset after 1.5 seconds
+  };
+
+  return (
+    <div className="code-block-container">
+      <button
+        onClick={copyToClipboard}
+        className={`copy-button ${isClicked ? 'clicked' : ''}`}
+      >
+        <ContentCopyIcon fontSize="medium" />
+        {isClicked && <p>Copied!</p>}
+      </button>
+      <SyntaxHighlighter
+        language={language}
+        className="code-block"
+        customStyle={{}}
+      >
+        {String(code).replace(/\n$/, '')}
+      </SyntaxHighlighter>
+    </div>
+  );
+}
+import React from 'react';
+
+export default function ErrorDisplay({ error }) {
+    return error && <div className="error">{error}</div>;
+}
+import React, { useState } from 'react';
+
+function FileSelector() {
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  const handleFileChange = (event) => {
+    setSelectedFile(event.target.files[0]);
+  };
+
+  const handleUpload = () => {
+    if (selectedFile) {
+      console.log('File name:', selectedFile.name);
+      // Here you can add logic to handle the file
+    } else {
+      console.log('No file selected');
+    }
+  };
+
+  return (
+    <div>
+      <input type="file" onChange={handleFileChange} />
+      <button onClick={handleUpload}>Upload</button>
+    </div>
+  );
+}
+
+export default FileSelector;
+import React from 'react';
+import Logo from '../imgs/QuillBot.png';
+import ChatControlButtons from './ChatControlButtons';
+
+export default function Header({ selectedChat, handleChangePersona }) {
+    return (
+        <header className="App-header">
+            <img src={Logo} alt="TokenQuill Logo" className="logo" />
+            <h1>{selectedChat.persona?.name}</h1>
+            <ChatControlButtons onPersonaClick={handleChangePersona} />
+        </header>
+    );
+}
+import { useState, useEffect } from 'react';
+const { Ollama } = require("langchain/llms/ollama");
+const { StringOutputParser } = require("langchain/schema");
+
+
+function createFinalPrompt(chatHistory, persona) {
+  // convert to ChatML prompt format
+  let finalPrompt =`<|im_start|>system\n${JSON.stringify(persona)}\n!<|im_end|>\n`;
+
+  // Loop through the chatHistory
+  chatHistory.forEach((message) => {
+    switch (message.role) {
+      case 'user':
+        // Append user messages prefixed with 'user'
+        finalPrompt += `<|im_start|>user\n${message.content}\n!<|im_end|>\n`;
+        break;
+      case persona.name:
+        // Append assistant messages with the 'assistant' tag and include the start tag
+        finalPrompt += `<|im_start|>${persona.name}\n${message.content}!<|im_end|>\n`;
+        break;
+      default:
+        // Handle any other roles or ignore them
+        break;
+    }
+  });
+
+
+  const target = '!<|im_end|>\n';
+  const lastIndex = finalPrompt.lastIndexOf(target);
+  if (lastIndex !== -1 && lastIndex === finalPrompt.length - target.length) {
+    // It's at the end, so remove it
+    finalPrompt = finalPrompt.substring(0, lastIndex);
+  }
+
+  return finalPrompt;
+}
+
+function fetchPromptFormats() {
+  const apiTagsEndpoint = "http://localhost:11434/api/tags";
+  const apiShowEndpoint = "http://localhost:11434/api/show";
+
+  // This function now returns a Promise that resolves with the unique templates array
+  return new Promise(async (resolve, reject) => {
+    const uniqueTemplates = new Set(); // A set to hold unique templates
+
+    try {
+      // Fetch the list of models
+      const tagsResponse = await fetch(apiTagsEndpoint);
+      if (!tagsResponse.ok) throw new Error('Failed to fetch model tags.');
+      const tagsData = await tagsResponse.json();
+
+      // Extract model names and fetch their templates
+      for (const model of tagsData.models) {
+        const modelName = model.name;
+
+        // Make the POST request to fetch the model's template
+        const showResponse = await fetch(apiShowEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: modelName }),
+        });
+
+        if (!showResponse.ok) {
+          console.error(`Failed to fetch template for model: ${modelName}`);
+          continue; // Skip to the next model if the fetch failed
+        }
+
+        const templateData = await showResponse.json();
+        if (templateData && templateData['template']) {
+          uniqueTemplates.add(templateData['template']); // Add the template to the Set
+        }
+      }
+
+      // Convert the Set of unique templates to an Array and resolve the Promise with it
+      resolve([...uniqueTemplates]);
+    } catch (error) {
+      console.error("Error in fetching models and templates:", error);
+      reject(error); // Reject the Promise if there is an error
+    }
+  });
+}
+
+
+
+
+// chatHelpers.js
+export async function fetchBotReply(messageId, chatHistory, updateBotReply, persona, dispatch) {
+  try {
+    // refractor
+
+
+
+    // refractor
+
+
+
+    // Use the new function to create the final prompt
+    const finalPrompt = createFinalPrompt(chatHistory, persona);
+    console.log('-'.repeat(12)); // Corrected '*' to '-' and use 'repeat'
+    console.log(finalPrompt);
+    console.log();
+
+    dispatch({ type: 'SET_LOADING_STATE', payload: true });
+
+    const response = await fetch('http://localhost:11434/api/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: persona.model,
+        prompt: finalPrompt,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const reader = response.body.getReader();
+    let partialLine = '';
+    let finalResponse = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        updateBotReply(messageId, finalResponse, false); // Ensure typing is set to false when done
+        break;
+      }
+
+      const text = new TextDecoder().decode(value);
+      const lines = (partialLine + text).split('\n');
+      partialLine = lines.pop();
+
+      for (const line of lines) {
+        try {
+          const json = JSON.parse(line);
+          if (json.response) {
+            finalResponse += json.response;
+            updateBotReply(messageId, finalResponse, true);
+          }
+        } catch (error) {
+          console.error('Error parsing JSON line:', line, error);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Fetching bot response failed:', error);
+    updateBotReply(messageId, "Sorry, an error occurred. Please try again later.", false);
+  } finally {
+    // Ensure that the loading state is set to false when done
+    dispatch({ type: 'SET_LOADING_STATE', payload: false });
+  }
+}
+import React from 'react';
+import Chat from './Chat';
+import PersonaSettings from './PersonaSettings';
+
+export default function MainContent({ selectedChat, showSettings, models, handlePersonaChange, handleSaveSettings, selectedChatIndex, chats, setChats }) {
+    return (
+        <main className="App-content">
+            <div className={`chat-section ${showSettings ? 'hidden' : ''}`}>
+                <Chat systemSettings={selectedChat.persona} {...{ selectedChatIndex, chats, setChats }} />
+            </div>
+            {showSettings && <PersonaSettings persona={selectedChat.persona} models={models} onChange={handlePersonaChange} onSubmit={handleSaveSettings} />}
+        </main>
+    );
+}
+import React from 'react';
+
+function Message({ text, sender }) {
+  return (
+    <div className={`Message ${sender}`}>
+      <p>{text}</p>
+    </div>
+  );
+}
+
+export default Message;
+import React from 'react';
+
+
+function PersonaSettings({ persona, onChange, onSubmit, models }) {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    onChange({ ...persona, [name]: value });
+  };
+
+  const handleModelChange = (e) => {
+    const newModel = e.target.value;
+    onChange({ ...persona, model: newModel });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit();
+  };
+
+
+  return (
+    <div className="persona-settings">
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label>Model:</label>
+          <select name="model" value={persona.model} onChange={handleModelChange}>
+            {models.map((model, index) => (
+              <option key={index} value={model}>
+                {model}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="form-group">
+          <label>Name:</label>
+          <input
+            type="text"
+            name="name"
+            value={persona.name}
+            onChange={handleChange}
+          />
+        </div>
+        <div className="form-group">
+          <label>Personality:</label>
+          <input
+            type="text"
+            name="personality"
+            value={persona.personality}
+            onChange={handleChange}
+          />
+        </div>
+        <div className="form-group">
+          <label>Expertise:</label>
+          <input
+            type="text"
+            name="expertise"
+            value={persona.expertise}
+            onChange={handleChange}
+          />
+        </div>
+        <div className="form-group">
+          <label>Rules:</label>
+          <input
+            type="text"
+            name="rules"
+            value={persona.rules}
+            onChange={handleChange}
+          />
+        </div>
+        <button type="submit">Save</button>
+      </form>
+    </div>
+  );
+}
+
+export default PersonaSettings;
+import React, { useState, useRef } from 'react';
+import CloseIcon from '@mui/icons-material/Close';
+import ImportExportIcon from '@mui/icons-material/ImportExport';
+import SaveAltIcon from '@mui/icons-material/SaveAlt';
+import AddIcon from '@mui/icons-material/Add';
+import ChatIcon from '@mui/icons-material/Chat';
+
+function ChatSidebar({ chats, onSelectChat, onAddChat, onDeleteChat, selectedChatIndex, setChats }) {
+  const [hoverStatus, setHoverStatus] = useState('');
+  const [editingIndex, setEditingIndex] = useState(null); // Added this line
+  const [editedName, setEditedName] = useState(''); // And this line
+  const fileInputRef = useRef(null);
+
+  const handleExport = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(chats));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "chats.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  };
+
+  const handleImport = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleEditChatName = (index) => {
+    setEditingIndex(index);
+    setEditedName(chats[index].name);
+  };
+
+  const handleChangeChatName = (e) => {
+    setEditedName(e.target.value);
+  };
+
+  const handleBlurChatName = () => {
+    if (editedName && editedName !== chats[editingIndex].name) {
+      const updatedChats = [...chats];
+      updatedChats[editingIndex].name = editedName;
+      setChats(updatedChats);
+    }
+    setEditingIndex(null);
+  };
+
+  const handleKeyPressOnChatName = (e) => {
+    if (e.key === 'Enter') {
+      handleBlurChatName();
+    }
+  };
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const importedChats = JSON.parse(e.target.result);
+          setChats(importedChats);
+        } catch (error) {
+          console.error("Error parsing the file", error);
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  return (
+    <div className="chat-sidebar">
+      <div className="chat-sidebar-header">
+        <div className="chat-sidebar-actions">
+          <button
+            onMouseEnter={() => setHoverStatus('import')}
+            onMouseLeave={() => setHoverStatus('')}
+            onClick={handleImport}
+            className="import-export-button"
+          >
+            <ImportExportIcon />
+          </button>
+          <button
+            onMouseEnter={() => setHoverStatus('export')}
+            onMouseLeave={() => setHoverStatus('')}
+            onClick={handleExport}
+            className="import-export-button"
+          >
+            <SaveAltIcon />
+          </button>
+          <h3>
+            {hoverStatus === 'import' ? 'Import' : hoverStatus === 'export' ? 'Export' : hoverStatus === 'add' ? 'New Talk' :'Talks'}
+          </h3>
+        </div>
+      </div>
+      <button onClick={onAddChat} className="add-chat-button" onMouseEnter={() => setHoverStatus('add')}
+      onMouseLeave={() => setHoverStatus('')}><AddIcon /></button>
+      <ul>
+        {chats.map((chat, index) => (
+
+          <li
+            key={index}
+            onClick={() => onSelectChat(index)}
+            className={selectedChatIndex === index ? 'selected-chat' : ''}
+          >
+
+            {editingIndex === index ? (
+              <input
+                type="text"
+                value={editedName}
+                onChange={handleChangeChatName}
+                onBlur={handleBlurChatName}
+                onKeyPress={handleKeyPressOnChatName}
+                autoFocus
+              />
+            ) : (
+              <span id="chatnames" onDoubleClick={() => handleEditChatName(index)}>{chat.name} </span>
+            )}
+
+            <div id="chaticon"><button
+              onClick={(e) => { e.stopPropagation(); onDeleteChat(index); }}
+              className="delete-chat-button"
+            >
+            <CloseIcon />
+            </button><ChatIcon /></div>
+          </li>
+        ))}
+      </ul>
+      <input
+        ref={fileInputRef}
+        type="file"
+        style={{ display: 'none' }}
+        accept=".json"
+        onChange={handleFileChange}
+      />
+    </div>
+  );
+}
+
+export default ChatSidebar;

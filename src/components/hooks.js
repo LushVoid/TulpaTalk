@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
+const { Ollama } = require("langchain/llms/ollama");
+const { StringOutputParser } = require("langchain/schema");
+
 
 function createFinalPrompt(chatHistory, persona) {
   // convert to ChatML prompt format
-  let finalPrompt =`<|im_start|>system\n${JSON.stringify(persona)}\n!<|im_end|>\n`;
+  let finalPrompt =``;
 
   // Loop through the chatHistory
   chatHistory.forEach((message) => {
@@ -32,10 +35,58 @@ function createFinalPrompt(chatHistory, persona) {
   return finalPrompt;
 }
 
+function fetchPromptFormats() {
+  const apiTagsEndpoint = "http://localhost:11434/api/tags";
+  const apiShowEndpoint = "http://localhost:11434/api/show";
+
+  // This function now returns a Promise that resolves with the unique templates array
+  return new Promise(async (resolve, reject) => {
+    const uniqueTemplates = new Set(); // A set to hold unique templates
+
+    try {
+      // Fetch the list of models
+      const tagsResponse = await fetch(apiTagsEndpoint);
+      if (!tagsResponse.ok) throw new Error('Failed to fetch model tags.');
+      const tagsData = await tagsResponse.json();
+
+      // Extract model names and fetch their templates
+      for (const model of tagsData.models) {
+        const modelName = model.name;
+
+        // Make the POST request to fetch the model's template
+        const showResponse = await fetch(apiShowEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: modelName }),
+        });
+
+        if (!showResponse.ok) {
+          console.error(`Failed to fetch template for model: ${modelName}`);
+          continue; // Skip to the next model if the fetch failed
+        }
+
+        const templateData = await showResponse.json();
+        if (templateData && templateData['template']) {
+          uniqueTemplates.add(templateData['template']); // Add the template to the Set
+        }
+      }
+
+      // Convert the Set of unique templates to an Array and resolve the Promise with it
+      resolve([...uniqueTemplates]);
+    } catch (error) {
+      console.error("Error in fetching models and templates:", error);
+      reject(error); // Reject the Promise if there is an error
+    }
+  });
+}
+
+
+
 
 // chatHelpers.js
 export async function fetchBotReply(messageId, chatHistory, updateBotReply, persona, dispatch) {
   try {
+
     // Use the new function to create the final prompt
     const finalPrompt = createFinalPrompt(chatHistory, persona);
     console.log('-'.repeat(12)); // Corrected '*' to '-' and use 'repeat'

@@ -143,7 +143,12 @@ h1 {
 ul {
   text-align: left;
 }
+
 .form-group {
+  margin-bottom: 15px;
+  max-width: 80vw;
+}
+.form-group-long {
   margin-bottom: 15px;
   max-width: 80vw;
 }
@@ -154,11 +159,22 @@ ul {
   resize: vertical; /* Allows user to manually resize vertically */
 }
 
+.form-group-long textarea {
+  width: 100%;
+  height: 300px; /* This sets the height directly */
+  box-sizing: border-box;
+  resize: vertical;
+  margin-bottom: 15px;
+  /* Add !important to test specificity issues */
+  height: 300px !important;
+}
+
 
 .form-group label {
   display: block;
   margin-bottom: 5px;
 }
+
 .hidden {
   display: none;
 }

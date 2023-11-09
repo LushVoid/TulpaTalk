@@ -17,7 +17,7 @@ function transformCodeInput(text) {
 }
 
 
-function ChatHistory({ chatHistory, isLoading, updateChatHistory }) {
+function ChatHistory({ chatHistory, isLoading }) {
   const chatBoxRef = useRef(null);
   const previousMessageIds = useRef(chatHistory.map(message => message.timestamp));
   const intervalIdRef = useRef(null);
