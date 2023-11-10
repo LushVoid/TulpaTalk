@@ -148,6 +148,7 @@ function App() {
   const handlePersonaChange = (updatedPersona) => {
     const updatedChats = [...chats];
     updatedChats[selectedChatIndex].persona = updatedPersona;
+    state.chats = updatedChats;
     setChats(updatedChats);
   };
   const handleSaveSettings = () => setShowSettings(false);
@@ -201,7 +202,7 @@ function App() {
     console.log(updatedChats);
     setChats(updatedChats);
     state.chats = updatedChats;
-    // setSelectedChatIndex(updatedChats.length - 1); // Uncomment this if you want the new chat to be selected immediately after adding
+    setSelectedChatIndex(updatedChats.length - 1); // Uncomment this if you want the new chat to be selected immediately after adding
   };
 
 
@@ -235,8 +236,7 @@ function App() {
     <div className="App">
     <header className={`App-header ${showSettings ? 'hidden' : ''}`}>
       <img src={Logo} alt="TokenQuill Logo" className="logo" />
-      <h1>{selectedChat.persona?.name}</h1>
-      <t>🧠: {selectedChat.persona?.model}</t>
+      <h1>{selectedChat.persona?.model}</h1>
 
     </header>
       <ChatControlButtons onPersonaClick={handleChangePersona} />

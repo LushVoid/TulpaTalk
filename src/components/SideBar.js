@@ -111,7 +111,8 @@ function ChatSidebar({ chats, onSelectChat, onAddChat, onDeleteChat, selectedCha
                 autoFocus
               />
             ) : (
-              <span id="chatnames" onDoubleClick={() => handleEditChatName(index)}>{chat.name} </span>
+              <div className="chatnamesCont">
+              <span id="chatnames" onDoubleClick={() => handleEditChatName(index)}>{chat.name} </span></div>
             )}
 
             <div id="chaticon"><button

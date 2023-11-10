@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
+import EditIcon from '@mui/icons-material/Edit';
+import CloseIcon from '@mui/icons-material/Close';
 
 function newSysPrompt(modelfile, systemprompt) {
   // Regular expression to match the SYSTEM line and any number of following lines
@@ -16,6 +18,12 @@ function newSysPrompt(modelfile, systemprompt) {
 
 
 function PersonaSettings({ persona, onChange, onSubmit, models, updateModels }) {
+
+  const [isEditing, setIsEditing] = useState(false);
+
+  const toggleEdit = () => {
+    setIsEditing(!isEditing);
+  };
   const handleChange = (e) => {
     const { name, value } = e.target;
     onChange({ ...persona, [name]: value });
@@ -44,12 +52,14 @@ function PersonaSettings({ persona, onChange, onSubmit, models, updateModels }) 
             throw new Error('Network response was not ok.');
         }
         const data = await response.json();
-        const wario = newSysPrompt(data.modelfile, persona.system);
+        const mf = newSysPrompt(data.modelfile, persona.system);
         const modelData = {
           // Replace this with the actual model file content you want to send
-          modelfile: wario,
+          modelfile: mf,
           name: persona.name
         };
+
+
 
         try {
           const response = await fetch('http://localhost:5000/api/build-model', {
@@ -81,8 +91,13 @@ function PersonaSettings({ persona, onChange, onSubmit, models, updateModels }) 
 
   return (
     <div className="persona-settings">
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
+      <div id='edittcont'>
+      <button type="button" onClick={toggleEdit} id='editTulpa'>
+        {isEditing ? <CloseIcon /> : <EditIcon />}
+      </button>
+      </div>
+      <form onSubmit={handleSubmit} >
+        <div className="form-group" style={{ display: isEditing ? 'none' : 'block' }}>
           <label>Tulpa</label>
           <select name="model" value={persona.model} onChange={handleModelChange}>
             {models.map((model, index) => (
@@ -92,6 +107,7 @@ function PersonaSettings({ persona, onChange, onSubmit, models, updateModels }) 
             ))}
           </select>
         </div>
+        <div style={{ display: isEditing ? 'block' : 'none' }}>
         <div className="form-group">
           <label>Name:</label>
           <input
@@ -101,19 +117,21 @@ function PersonaSettings({ persona, onChange, onSubmit, models, updateModels }) 
             onChange={handleChange}
           />
         </div>
-        <div className="form-group-long">
+        <div className="form-group-long" >
           <label>System:</label>
-          <input
-            type="text"
+          <textarea
+            id='sysp'
             name="system"
-            value={persona.system}
             onChange={handleChange}
             rows="5"
-          />
+          >
+            {persona.system}
+          </textarea>
         </div>
-        <button type="submit">Save</button>
-      </form>
-    </div>
+          <button type="submit">Save</button>
+        </div>
+          </form>
+        </div>
   );
 }
 
