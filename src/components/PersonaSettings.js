@@ -84,7 +84,7 @@ function PersonaSettings({ persona, onChange, onSubmit, models, updateModels }) 
     } catch (error) {
         console.error('There was an error saving the model!', error);
     }
-    console.log(persona);
+    console.log('model', persona.model);
     updateModels();
   };
 

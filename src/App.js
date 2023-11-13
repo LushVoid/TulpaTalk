@@ -7,29 +7,7 @@ import './App.css';
 import Logo from './imgs/QuillBot.png';
 import tq from './persona';
 import useChat from './hooks/useChat';
-
-async function showInfo(modelName) {
-  try {
-    const response = await fetch('http://localhost:11434/api/show', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: modelName
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-
-    const result = await response.json();
-    console.log(result); // Or whatever you need to do with the result
-  } catch (error) {
-    console.error('Failed to show model info:', error);
-  }
-}
+import TextToSpeech from './components/TextToSpeech';
 
 const chatReducer = (state, action) => {
   switch (action.type) {
@@ -136,13 +114,9 @@ function App() {
     isLoading: false,
   };
   const [state, dispatch] = useReducer(chatReducer, defaultState);
-
-
-
-
+  const selectedChat = chats[selectedChatIndex] || {};
   console.log('rendered app');
 
-  const selectedChat = chats[selectedChatIndex] || {};
 
   const handleChangePersona = () => setShowSettings(!showSettings);
   const handlePersonaChange = (updatedPersona) => {
@@ -166,11 +140,6 @@ function App() {
         setModels(modelNames); // Update models state with just the names, without ':latest'
         const latestModel = data.models[data.models.length - 1];
         updateDefaultPersonaModel(latestModel.name);
-
-        // Iterate through each model name and call showInfo for each
-        for (const modelName of modelNames) {
-          await showInfo(modelName);
-        }
       }
     } catch (error) {
       console.error('Failed to fetch local models:', error);
@@ -228,9 +197,6 @@ function App() {
       setChats(JSON.parse(savedChats));
     }
   }, []); // Load chats from local storage on mount
-
-
-
 
   return (
     <div className="App">
