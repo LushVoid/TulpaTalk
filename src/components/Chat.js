@@ -5,6 +5,9 @@ import { fetchBotReply } from './hooks';
 import { Ollama } from "langchain/llms/ollama";
 import { BufferMemory, ChatMessageHistory } from "langchain/memory";
 import TextToSpeech from './TextToSpeech';
+import Logo from '../imgs/QuillBot.png';
+import SpeedIcon from '@mui/icons-material/Speed';
+
 
 
 const Chat = forwardRef(({ selectedChatIndex, chats, dispatch, saveChats, isLoading, setChats }, ref) => {
@@ -19,6 +22,9 @@ const Chat = forwardRef(({ selectedChatIndex, chats, dispatch, saveChats, isLoad
   });
 
   const [textToSpeak, setTextToSpeak] = useState('');
+
+  const [wordsPerMinute, setWordsPerMinute] = useState(0); // Add this line
+
 
 
   useEffect(() => {
@@ -146,9 +152,10 @@ const Chat = forwardRef(({ selectedChatIndex, chats, dispatch, saveChats, isLoad
       let numWords = botReply.content.split(' ').length;
       let durationInSeconds = Math.round((botReply.timestamp - timestamp) / 1000); // convert milliseconds to seconds
       let numWordsPerSecond = numWords / durationInSeconds;
-      let wordsPerMinute = Math.round(numWordsPerSecond * 60); // multiply by the number of seconds in a minute
+      let wordSpeed = Math.round(numWordsPerSecond * 60); // multiply by the number of seconds in a minute
 
-      console.log('wpm', wordsPerMinute);
+      console.log('wpm', wordSpeed);
+      setWordsPerMinute(wordSpeed);
 
 
       dispatch({ type: 'SET_LOADING_STATE', payload: false });
@@ -167,12 +174,19 @@ const Chat = forwardRef(({ selectedChatIndex, chats, dispatch, saveChats, isLoad
 
   return (
     <div className="chat-container">
-      <div>
-        <TextToSpeech textToSpeak={textToSpeak} />
+    <TextToSpeech textToSpeak={textToSpeak} />
+    <div className='infobar'>
+      <div className='infostat'>
+        <SpeedIcon/>
+        <p className='infostattxt'>Words Per Minute: {wordsPerMinute}</p>
       </div>
+    </div>
+    <header className={`App-header`}>
+      <img src={Logo} alt="TokenQuill Logo" className="logo" />
+    </header>
+    <h1>{selectedChat.persona?.model}</h1>
       <ChatHistory chatHistory={chats[selectedChatIndex].chatHistory} isLoading={isLoading} />
       <ChatInput onSendMessage={sendMessage} isLoading={isLoading} />
-      <div>hiiiiiiii</div>
       <span>TulpaTalk may not always be accurate, it's essential to double-check information.</span>
     </div>
 

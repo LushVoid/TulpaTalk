@@ -68,11 +68,13 @@ h1 {
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  position: sticky;
   top: 0;
   z-index: 1; /* Ensuring that .App-header is below .chat-box */
+  margin-top: 0; /* Remove top margin */
+  margin-bottom: 0; /* Remove bottom margin */
 }
-` `
+
+
 .App-link {
   color: #1F6FEB;
 }
@@ -420,17 +422,29 @@ button:hover {
   margin: 0 auto;
 }
 
+.infobar {
+  border-bottom: solid 1px;
+  border-radius: 0px;
+  height: 6vh;
+}
+.infostat  {
+  width: 33%;
+}
+.infostattxt  {
+  margin-top: -0vh;
+}
+
 .chat-box {
   border: 1px solid #30363D;
   border-top: none;
   font-size: 20px;
   padding: 0.5vw;
-  height: 76vh;
+  height: 80vh;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  margin-top: -30vh; /* Adjusted to make .chat-box extend to the top */
+  margin-top: -48vh; /* Adjusted to make .chat-box extend to the top */
   position: relative;
   z-index: 2; /* Ensuring that .chat-box is above .App-header */
   -webkit-mask-image: linear-gradient(to bottom, transparent 0.1%, black 25%);
@@ -553,7 +567,7 @@ button:hover {
 }
 
 .logo {
-  width: 250px; /* or whatever size you prefer */
-  height: auto;
+  height: 25vh; /* or whatever size you prefer */
   float: right;
+  margin-top: 0px;
 }

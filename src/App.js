@@ -200,11 +200,6 @@ function App() {
 
   return (
     <div className="App">
-    <header className={`App-header ${showSettings ? 'hidden' : ''}`}>
-      <img src={Logo} alt="TokenQuill Logo" className="logo" />
-      <h1>{selectedChat.persona?.model}</h1>
-
-    </header>
       <ChatControlButtons onPersonaClick={handleChangePersona} />
       <main className="App-content">
         <ChatSidebar

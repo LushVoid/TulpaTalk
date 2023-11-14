@@ -21,7 +21,6 @@ const TextToSpeech = ({ textToSpeak }) => {
 
   return (
     <div>
-      <h1>Text to Speech Component</h1>
     </div>
   );
 };
