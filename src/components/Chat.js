@@ -9,6 +9,18 @@ import Logo from '../imgs/QuillBot.png';
 import SpeedIcon from '@mui/icons-material/Speed';
 
 
+function calculateAverage(list) {
+  let sum = 0; // Initialize sum variable to 0
+
+  for (let i = 0; i < list.length; i++) {
+    sum += list[i]; // Add each element of the list to the sum
+  }
+
+  return sum / list.length; // Return average by dividing sum with length of the list
+}
+
+
+
 
 const Chat = forwardRef(({ selectedChatIndex, chats, dispatch, saveChats, isLoading, setChats }, ref) => {
 
@@ -23,7 +35,7 @@ const Chat = forwardRef(({ selectedChatIndex, chats, dispatch, saveChats, isLoad
 
   const [textToSpeak, setTextToSpeak] = useState('');
 
-  const [wordsPerMinute, setWordsPerMinute] = useState(0); // Add this line
+  const [wordsPerMinute, setWordsPerMinute] = useState(chats[selectedChatIndex].wpm); // Add this line
 
 
 
@@ -36,6 +48,7 @@ const Chat = forwardRef(({ selectedChatIndex, chats, dispatch, saveChats, isLoad
       scrollToBottom();
     }
   }, [selectedChat.chatHistory]);
+
 
   useEffect(() => {
     dispatch({ type: 'UPDATE_CHATS', payload: chats });
@@ -54,7 +67,7 @@ const Chat = forwardRef(({ selectedChatIndex, chats, dispatch, saveChats, isLoad
 
 
   const renameChatIfNeeded = async (chatHistory, chats, selectedChatIndex, dispatch) => {
-    if (chatHistory.length > 3 && chats[selectedChatIndex].name === 'New Chat') {
+    if (chatHistory.length > 2 && chats[selectedChatIndex].name === 'New Chat') {
       // Code to create new name.
       const chatHistoryJson = JSON.stringify(chatHistory);
       const summary = `<chathistory>${chatHistoryJson}</s>\n${'Make a compelling chat title for the chat history, with two words.'}`;
@@ -154,8 +167,10 @@ const Chat = forwardRef(({ selectedChatIndex, chats, dispatch, saveChats, isLoad
       let numWordsPerSecond = numWords / durationInSeconds;
       let wordSpeed = Math.round(numWordsPerSecond * 60); // multiply by the number of seconds in a minute
 
-      console.log('wpm', wordSpeed);
-      setWordsPerMinute(wordSpeed);
+      chats[selectedChatIndex].msgSpeeds.push(wordSpeed);
+      chats[selectedChatIndex].wpm = calculateAverage(chats[selectedChatIndex].msgSpeeds);
+      console.log('wpm', chats[selectedChatIndex].wpm);
+      setWordsPerMinute(chats[selectedChatIndex].wpm);
 
 
       dispatch({ type: 'SET_LOADING_STATE', payload: false });

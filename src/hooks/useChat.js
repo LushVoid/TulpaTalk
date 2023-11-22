@@ -11,7 +11,7 @@ function useChat() {
     } catch (error) {
       console.error("Failed to load chats from localStorage:", error);
     }
-    return [{ name: 'New Chat', chatHistory: [], persona: tq }];
+    return [{ name: 'New Chat', chatHistory: [], persona: tq, wpm:0, msgSpeeds:[] }];
   });
 
   const [selectedChatIndex, setSelectedChatIndex] = useState(() => {
