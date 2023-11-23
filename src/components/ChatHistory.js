@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useEffect } from 'react';
+import React, { useLayoutEffect, useRef, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { CodeBlock } from './CodeBlock';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
@@ -21,9 +21,12 @@ function ChatHistory({ chatHistory, isLoading }) {
   const chatBoxRef = useRef(null);
   const previousMessageIds = useRef(chatHistory.map(message => message.timestamp));
   const intervalIdRef = useRef(null);
+  const [isClicked, setIsClicked] = useState(false);
 
   const handleCopyClick = (text) => {
     navigator.clipboard.writeText(text);
+    setIsClicked(true);
+    setTimeout(() => setIsClicked(false), 1000);
   };
 
   const scrollToBottom = () => {
@@ -62,14 +65,12 @@ function ChatHistory({ chatHistory, isLoading }) {
   }, [isLoading]);
 
 
+
   return (
     <div ref={chatBoxRef} className="chat-box">
       <div className="invisible-element" />
       {chatHistory.map((message) => (
         <div key={message.timestamp} className={`message ${message.role === 'user' ? 'user' : 'bot'}`}>
-          <div className="message-actions">
-            <ContentCopyIcon className="copy-button-2" onClick={() => handleCopyClick(message.content)} style={{ cursor: 'pointer' }} />
-          </div>
           <div className="message-content">
             <ReactMarkdown
               components={{
@@ -78,6 +79,11 @@ function ChatHistory({ chatHistory, isLoading }) {
             >
               {transformCodeInput(message.content)}
             </ReactMarkdown>
+            <div className="message-actions">
+              <div className={`copy-button-2 ${isClicked ? 'clicked' : ''}`} onClick={() => handleCopyClick(message.content)} style={{ cursor: 'pointer' }}>
+              {isClicked && <p>Copied!</p> || <ContentCopyIcon />}
+              </div>
+            </div>
           </div>
         </div>
       ))}

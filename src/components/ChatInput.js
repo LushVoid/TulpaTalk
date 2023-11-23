@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useEffect } from 'react';
+import React, { useRef, useCallback, useEffect, useState } from 'react';
 import SendIcon from '@mui/icons-material/Send';
 import MicIcon from '@mui/icons-material/Mic';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
@@ -6,6 +6,7 @@ import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognitio
 
 const ChatInput = React.memo(function ChatInput({ onSendMessage, isLoading }) {
   const textareaRef = useRef(null);
+  const [showButtons, setShowButtons] = useState(true); // New state variable
 
   const {
     transcript,
@@ -13,6 +14,34 @@ const ChatInput = React.memo(function ChatInput({ onSendMessage, isLoading }) {
     resetTranscript,
     browserSupportsSpeechRecognition
   } = useSpeechRecognition();
+
+  const [timeoutId, setTimeoutId] = useState(null);
+
+  const startListening = () => {
+    SpeechRecognition.startListening({ continuous: true });
+  };
+
+  const stopListening = () => {
+    SpeechRecognition.stopListening();
+    // Clear any existing timeout
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      setTimeoutId(null);
+    }
+  };
+
+  useEffect(() => {
+    // Restart the timeout every time the transcript changes
+    if (transcript) {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      const id = setTimeout(() => {
+        stopListening();
+      }, 3000); // 3 seconds timeout after the last word
+      setTimeoutId(id);
+    }
+  }, [transcript]);
 
   const handleKeyPress = useCallback((event) => {
     if (event.key === 'Enter' && !event.shiftKey) {
@@ -28,6 +57,10 @@ const ChatInput = React.memo(function ChatInput({ onSendMessage, isLoading }) {
     const textarea = event.target;
     textarea.style.height = 'auto';
     textarea.style.height = `${textarea.scrollHeight}px`;
+
+    // Calculate number of characters
+    const c = textarea.value.length;
+    setShowButtons(c <= 67);
   }, []);
 
   const handleSendClick = () => {
@@ -51,6 +84,14 @@ const ChatInput = React.memo(function ChatInput({ onSendMessage, isLoading }) {
     }
   }, [transcript, listening, onSendMessage, resetTranscript]);
 
+  useEffect(() => {
+    // Check if loading is finished, then show buttons
+    if (!isLoading) {
+      setShowButtons(true);
+    }
+    textareaRef.current.style.height = 'initial'; // Reset the height of the textarea
+  }, [isLoading]); // Effect runs when isLoading changes
+
   return (
     <div className="input-container">
       <div className="textarea-wrapper">
@@ -61,7 +102,8 @@ const ChatInput = React.memo(function ChatInput({ onSendMessage, isLoading }) {
           onInput={handleInput}
         />
         <div className="buttons-container">
-          {!isLoading && (
+          {/* Show Send button based on showButtons and isLoading */}
+          {!isLoading && showButtons && (
             <button
               id='send'
               onClick={handleSendClick}
@@ -70,10 +112,11 @@ const ChatInput = React.memo(function ChatInput({ onSendMessage, isLoading }) {
               <SendIcon />
             </button>
           )}
-          {!isLoading && (
+          {/* Always show Mic button when listening, otherwise depend on showButtons */}
+          {!isLoading && (listening || showButtons) && (
             <button
               id='mic'
-              onClick={SpeechRecognition.startListening}
+              onClick={startListening}
               className={listening ? "listening" : ""}
             >
               <MicIcon />
@@ -82,6 +125,7 @@ const ChatInput = React.memo(function ChatInput({ onSendMessage, isLoading }) {
         </div>
       </div>
     </div>
+
   );
 });
 

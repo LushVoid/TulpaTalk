@@ -191,8 +191,8 @@ ul {
 
 .chat-sidebar {
   position: fixed;
-  width: 300px;
-  box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.1);
+  width: 250px;
+
   background-color:rgba(0, 0, 0, 0.01);
   top: 0;
   left: 0;
@@ -200,15 +200,20 @@ ul {
   overflow-y: auto; /* This adds a scrollbar if the content is too long */
   z-index: 10; /* Adjust the value as needed */
   transition: transform 0.3s ease-in-out, background-color 0.3s ease-in-out;
-  transform: translateX(-77%);
+  transform: translateX(-80%);
   overflow: hidden;
   border-radius: 0px;
+
 }
+
 
 .chat-sidebar:hover {
   transform: translateX(0);
   background-color:rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(10px);
+  box-shadow: 20px 20px 50px rgba(0, 0, 0, 0.4);
+  transition: transform 0.3s ease-in-out, background-color 0.3s ease-in-out;
+
 }
 
 .chat-sidebar h3 {
@@ -306,9 +311,24 @@ ul {
 
 
 #chaticon {
+
+  padding: 4%;
   font-size: 5px;
   float: right;
 }
+
+/* Hide #chaticon by default when inside .chat-sidebar */
+.chat-sidebar #chaticon:not(.selected-chat #chaticon) {
+    visibility: hidden;
+}
+
+/* Show #chaticon when .chat-sidebar is hovered,
+   but not if it's inside .selected-chat */
+.chat-sidebar:hover #chaticon:not(.selected-chat #chaticon) {
+    visibility: visible;
+}
+
+
 
 .add-chat-button {
   width: 33%;
@@ -335,7 +355,6 @@ pre {
   color: black;
 }
 
-
 .code-block-container {
   position: relative;
 }
@@ -353,7 +372,16 @@ pre {
   transition: transform 0.15s ease;
 }
 .copy-button-2 {
-  transition: transform 0.15s ease;
+  position:relative;
+  right: 0;
+  top: 0;
+  height: 0px;
+  border: none;
+  padding: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  transform: scale(0); /* Enlarge the button */
+  transition: transform 0.5s ease-in-out, height 0.5s ease-in-out, box-shadow 0.5s ease-in-out;
 }
 .copy-button-2:hover {
   background-color: #45a049;
@@ -362,6 +390,7 @@ pre {
   background-color: #45a049;
   transform: scale(5); /* Enlarge the button */
   color:white;
+  box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.5);
 }
 
 .copy-button.clicked {
@@ -370,13 +399,18 @@ pre {
   background-color: #58A6FF;
 }
 
+.copy-button-2.clicked {
+  transform: scale(1.2); /* Enlarge the button */
+  color:white;
+  background-color: #58A6FF;
+}
+
+
 .code-block {
   /* Add any styles you want for your code block here */
   color: #67ff30;
   background-color: black;
 }
-
-
 
 input {
   width: 100%;
@@ -486,16 +520,77 @@ button:hover {
   max-width: 70%;
   word-break: break-word;
   order: 1;
+  font-size: 80%;
+  box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.4);
+  transition: box-shadow 1s ease-in-out;
+
+}
+
+.message:hover, .message.bot:hover {
+  box-shadow: 20px 20px 20px rgba(0, 0, 0, 0.4);
+}
+
+.message-actions {
+    /* Your base styles for the class */
+
+    max-width: 9px; /* Initially small width */
+    max-height: 3px; /* Initially small height */
+    opacity: 0;
+    /* Smooth transition for the size and opacity changes */
+    transition: max-width 0.5s ease-in-out, max-height 1s ease-in-out, opacity 0.3s ease;
+}
+
+.message:hover .message-actions {
+    /* Expand size on hover and increase opacity */
+    opacity: 1;
+    max-width: 100px; /* Adjust as needed */
+    max-height: 100px; /* Adjust as needed */
+}
+
+
+.message.user .message-actions {
+    /* Hide on hover */
+    float: left;
+}
+
+.message.bot .message-actions {
+    /* Hide on hover */
+    float: right;
+}
+
+.message:hover .copy-button-2 {
+    /* Hide on hover */
+    opacity: 1;
+    height: auto;
+    transform: scale(1); /* Enlarge the button */
+}
+
+.message .copy-button-2 {
+    /* Hide on hover */
+    opacity: 0;
+    height: 0px;
+}
+
+.message .copy-button {
+    /* Hide on hover */
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out, transform;
+}
+
+.message:hover .copy-button {
+    /* Hide on hover */
+    opacity: 1;
+    transition: opacity 0.5s ease-in-out;
 }
 
 .message.bot {
-  background-color: rgba(40, 40, 40, 0.75);
+  background-color: rgba(40, 40, 40, 0.95);
   border: 4px;
   align-self: flex-start;
   text-align:left;
   opacity: 100%;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  text-shadow: 3
+  text-shadow: 3;
 }
 .message.typing {
   background-color: #58A6FF;
@@ -505,19 +600,21 @@ button:hover {
   text-align:left;
   opacity: 100%;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  text-shadow: 6
+  text-shadow: 6;
 }
 
 .message.user {
-  border-color: #3FB950;
-  border: 20px;
-  color: black;
+  color: white;
+  border: solid #3FB950 1px;
   align-self: flex-end;
   text-align:right;
   opacity: 95%;
-  background-color: #3FB950;
+  background-color: #282c34;
   font-style: inherit;
-  color:white;
+}
+.message p {
+  margin: 0px;
+  text-align: justify;
 }
 
 .input-container {
@@ -533,46 +630,54 @@ button:hover {
 }
 
 
-.textarea-wrapper {
-  position: relative;
-  padding-right: 80px; /* Space for buttons */
-}
 
 
 .textarea-wrapper {
   position: relative;
-  padding-right: 80px; /* Adjust as needed to create space for buttons */
-  min-height: 5vh; /* Match the min-height of the textarea */
-  max-height: 7vh; /* Match the max-height of the textarea */
+  padding-left: 0px; /* Adjust as needed to create space for buttons */
+
+  border: solid 1px;
+  min-height: 2vh; /* Minimum height */
+  max-height: 8vh; /* Maximum height - same as the wrapper */
+  border-radius: 8px;
 }
 
 
 .buttons-container {
   position: absolute;
-  top: 5px; /* Adjust to align with the top of the textarea */
-  right: 5px; /* Adjust to place inside the textarea */
-  height: 100%;
+  top: 0; /* Align with the top of the textarea-wrapper */
+  right: 10px; /* Adjust to place inside the textarea-wrapper */
   display: flex;
   flex-direction: row;
   align-items: start;
+  margin-top: 2px;
 }
 
-
-button#send, button#mic {
-  margin-left: 5px; /* Space between buttons */
-  /* Additional styles for your buttons */
-}
 
 
 #ChatInput {
-  height: 5vh; /* Minimum height */
-  max-height: 7vh;
-  width: 100%;
+  width: 100%; /* Adjust width to account for padding */
+  height: 100%; /* Take full height of the wrapper */
+  min-height: 2vh; /* Minimum height */
+  max-height: 8vh; /* Maximum height - same as the wrapper */
   background: none;
-  color:white;
+  color: white;
   font-style: inherit;
   font-size: 15px;
+  box-sizing: border-box;
+  overflow-y: auto; /* Scroll vertically when content exceeds height */
+  resize: none;
+  border: none;
+  padding-right: 0px; /* Right padding for button space */
+  scrollbar-width: none; /* For Firefox */
+  -ms-overflow-style: none;
+  margin-left: -0px;
+
+  &:focus {
+    outline: none;
+  }
 }
+
 
 input {
   flex-grow: 1;
@@ -594,26 +699,47 @@ button {
   border-radius: 5px;
   cursor: pointer;
 }
-#send {
+
+
+button#send, button#mic {
+  padding-top: 1vh;
+  border-radius: 0px;
   width: 100%;
   height: 100%;
+  margin: auto;
+  border: solid 0px;
+  color: rgba(265, 265, 265, 0.5);
+  background-color: rgba(0, 0, 0, 0);
+  transition: margin-top 0.3s ease, margin-right 0.3s ease;
 }
 
-#mic {
-  width: 100%;
-  height: 100%;
+button#mic {
+  border-left: solid 1px;
+
+  border-color: rgba(265, 265, 265, 0.1);
 }
+button#send:hover, button#mic:hover {
+  color: rgba(265, 265, 265, 0.95);
+  transition: 1s;
+  transition: margin-top 0.3s ease, margin-right 0.3s ease;
+
+}
+
+
+
 
 button#mic.listening {
-  animation: pulse 1.2s infinite;
+  animation: pulse 2s infinite;
   color: white;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0));
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0));
   border: solid 2px;
   border-radius: 100%;
   border-color: red;
   z-index: 100;
-  position: relative;
+  position:static;
   overflow: hidden;
+
+  transition: margin-top 0.3s ease, margin-right 0.3s ease;
 }
 
 
@@ -623,7 +749,7 @@ button#mic.listening {
     opacity: 1;
   }
   50% {
-    transform: scale(1.6);
+    transform: scale(3);
     opacity: 0.7;
   }
   100% {
