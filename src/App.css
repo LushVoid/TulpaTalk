@@ -23,6 +23,95 @@ body {
   height: 40vmin;
   pointer-events: none;
 }
+#eeg {
+  width: 50%;
+  margin: auto;
+}
+
+
+.brain-icon-container.disabled {
+  opacity: 0.1; /* 10% opacity */
+}
+
+
+#eeg-text {
+  width: 90%;
+  margin: auto;
+  text-align: justify;
+}
+.right-button-container {
+  position: absolute; /* or 'fixed' depending on your needs */
+  top: 0; /* Align to the top */
+  right: 0; /* Align to the right */
+  height: 100%;
+  width: 80px;;
+}
+#addontxt {
+  border-bottom: dashed 1px;
+  border-radius: 0px;
+  font-size: 70%;
+}
+
+.icon-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: background-color 0.3s;
+  padding: 5px;
+  border-radius: 5px;
+  float: right; /* Adjusted to float right */
+
+  top: 6px;  /* Adjust this value so it's below the .persona-button-box */
+  right: 10px;
+  margin: 10px;
+  z-index: 1000; /* Ensures it's above other content */
+}
+
+.brain-icon-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: background-color 0.3s;
+  padding: 5px;
+  border-radius: 5px;
+  float: right; /* Adjusted to float right */
+  position: absolute;
+  top: 60px;  /* Adjust this value so it's below the .persona-button-box */
+  right: 10px;
+  margin: 10px;
+  z-index: 1000; /* Ensures it's above other content */
+}
+
+.brain-icon-container:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.brain-icon {
+  font-size: 24px; /* Adjust the size as needed */
+  color: #ffffff; /* Adjust the color as needed */
+  cursor: pointer;
+}
+
+/* Additional styling for any text or labels you might have inside the .brain-icon-container */
+.brain-icon-container span {
+  font-size: 0.75rem;
+  color: #ffffff;
+}
+
+
+.hover-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%; /* Positioning right below the icon */
+}
+
+.brain-icon-container:hover .hover-content {
+  display: block; /* Show content on hover */
+}
+
 
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {

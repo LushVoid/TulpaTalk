@@ -9,6 +9,56 @@ import Logo from '../imgs/QuillBot.png';
 import SpeedIcon from '@mui/icons-material/Speed';
 
 
+const getEEGData = async () => {
+  try {
+    // Fetching the data
+    const response = await fetch('http://localhost:5000/api/fetch-data');
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const json = await response.json();
+
+    // Process the data to calculate averages
+    const averages = calculateChannelAverages(json.data);
+
+    // Return the averages as a JSON string
+    return JSON.stringify(averages);
+
+  } catch (error) {
+    console.error(error.message);
+    return '{}'; // Return an empty JSON object in case of an error
+  }
+};
+
+const calculateChannelAverages = (data) => {
+  // Initialize sums and counts for each channel
+  const sums = { Delta: 0, Theta: 0, Alpha: 0, Beta: 0, Gamma: 0 };
+  const counts = { Delta: 0, Theta: 0, Alpha: 0, Beta: 0, Gamma: 0 };
+
+  // Process each entry
+  data.slice(-500).forEach(entry => {
+    const values = entry.split(',');
+    ['Delta', 'Theta', 'Alpha', 'Beta', 'Gamma'].forEach((channel, index) => {
+      const value = parseFloat(values[index]);
+      if (!isNaN(value)) {
+        sums[channel] += value;
+        counts[channel]++;
+      }
+    });
+  });
+
+  // Calculate and format averages to up to 3 decimal places
+  const averages = {};
+  for (const channel in sums) {
+    averages[channel] = parseFloat((sums[channel] / counts[channel]).toFixed(3));
+  }
+
+  return averages;
+};
+
+
+
+
 function calculateAverage(list) {
   let sum = 0; // Initialize sum variable to 0
 
@@ -22,7 +72,7 @@ function calculateAverage(list) {
 
 
 
-const Chat = forwardRef(({ selectedChatIndex, chats, dispatch, saveChats, isLoading, setChats }, ref) => {
+const Chat = forwardRef(({ selectedChatIndex, chats, dispatch, saveChats, isLoading, setChats, eEG }, ref) => {
 
 
   const messageEndRef = useRef(null);
@@ -77,7 +127,6 @@ const Chat = forwardRef(({ selectedChatIndex, chats, dispatch, saveChats, isLoad
         nn += chunk;
       }
       nn = nn.replace(/['"]+/g, '').split(' ').slice(0, 3).join(' ');
-      console.log('new name', nn);
       chats[selectedChatIndex].name = nn;
       dispatch({
         type: 'RENAME_CHAT',
@@ -106,7 +155,8 @@ const Chat = forwardRef(({ selectedChatIndex, chats, dispatch, saveChats, isLoad
     const newUserMessage = {
       role: 'user',
       content: userMessage,
-      timestamp,
+      eeg: '',
+      timestamp:timestamp,
     };
 
     const botReply = {
@@ -118,7 +168,15 @@ const Chat = forwardRef(({ selectedChatIndex, chats, dispatch, saveChats, isLoad
     try {
       dispatch({ type: 'SET_LOADING_STATE', payload: true });
       const chatHistoryJson = JSON.stringify(chatHistory);
-      const promptForOllama = `<chathistory>${chatHistoryJson}</s>\n${userMessage}`;
+      const brainwaves = await getEEGData();
+      const promptForOllama = eEG
+        ? `<chathistory>${chatHistoryJson}</s>\n<EEG>${brainwaves}</s>\n${userMessage}`
+        : `<chathistory>${chatHistoryJson}</s>\n${userMessage}`;
+      if (eEG) {
+        newUserMessage.eeg = brainwaves;
+      }
+      console.log(promptForOllama);
+
       dispatch({
         type: 'UPDATE_CHAT_HISTORY',
         payload: [...chatHistory, newUserMessage, botReply]
@@ -161,7 +219,7 @@ const Chat = forwardRef(({ selectedChatIndex, chats, dispatch, saveChats, isLoad
         type: 'UPDATE_CHAT_HISTORY',
         payload: [...chatHistory, newUserMessage, botReply]
       });
-      console.log('HISTORY',chatHistory);
+
       let numWords = botReply.content.split(' ').length;
       let durationInSeconds = Math.round((botReply.timestamp - timestamp) / 1000); // convert milliseconds to seconds
       let numWordsPerSecond = numWords / durationInSeconds;
@@ -169,7 +227,6 @@ const Chat = forwardRef(({ selectedChatIndex, chats, dispatch, saveChats, isLoad
 
       chats[selectedChatIndex].msgSpeeds.push(wordSpeed);
       chats[selectedChatIndex].wpm = calculateAverage(chats[selectedChatIndex].msgSpeeds);
-      console.log('wpm', chats[selectedChatIndex].wpm);
       setWordsPerMinute(chats[selectedChatIndex].wpm);
 
 
@@ -181,7 +238,6 @@ const Chat = forwardRef(({ selectedChatIndex, chats, dispatch, saveChats, isLoad
   useEffect(() => {
     // This code runs after `state` has been updated
     localStorage.setItem('chats', JSON.stringify(chats));
-    console.log('State after update:', chats);
     setChats(chats);
   }, [chats]); // This will only re-run if `state` changes
 

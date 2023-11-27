@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo, useReducer, } from 'react';
 import Chat from './components/Chat';
-import ChatControlButtons from './components/ChatControlButtons';
 import PersonaSettings from './components/PersonaSettings';
 import ChatSidebar from './components/SideBar';
 import './App.css';
@@ -8,104 +7,15 @@ import Logo from './imgs/QuillBot.png';
 import tq from './persona';
 import useChat from './hooks/useChat';
 import TextToSpeech from './components/TextToSpeech';
+import RightSidebar from './components/RightSidebar'; // Import the new component
+import PsychologyIcon from '@mui/icons-material/Psychology'; // This represents the brain icon
+import { chatReducer } from './chatReducer'; // Import chatReducer
 
-const chatReducer = (state, action) => {
-  switch (action.type) {
-    case 'SEND_USER_MESSAGE':
-      return {
-        ...state,
-        chats: state.chats.map((chat, index) =>
-          index === state.selectedChatIndex
-            ? {
-                ...chat,
-                chatHistory: [...(chat.chatHistory || []), action.payload.userMessage, action.payload.botReply],
-              }
-            : chat
-        ),
-        isLoading: true,
-      };
-    case 'UPDATE_BOT_REPLY':
-      return {
-        ...state,
-        chats: state.chats.map((chat, index) =>
-          index === state.selectedChatIndex
-            ? {
-                ...chat,
-                chatHistory: (chat.chatHistory || []).map((message) =>
-                  message.role === (state.chats[state.selectedChatIndex].persona?.name || '') && message.timestamp === action.payload.timestamp
-                    ? { ...message, content: action.payload.botReplyText }
-                    : message
-                ),
-              }
-            : chat
-        ),
-        isLoading: action.payload.isBotTyping,
-      };
-    case 'SET_LOADING_STATE':
-      return {
-        ...state,
-        isLoading: action.payload,
-      };
-    case 'CLEAR_CHAT':
-      return {
-        ...state,
-        chats: state.chats.map((chat, index) =>
-          index === state.selectedChatIndex ? { ...chat, chatHistory: [] } : chat
-        ),
-      };
-    case 'SET_SELECTED_CHAT_INDEX':
-      return {
-        ...state,
-        selectedChatIndex: action.payload,
-      };
-    case 'UPDATE_CHAT_HISTORY':
-      return {
-        ...state,
-        chats: state.chats.map((chat, index) =>
-          index === state.selectedChatIndex ? { ...chat, chatHistory: action.payload } : chat
-        ),
-      };
-    case 'UPDATE_CHATS':
-      return {
-        ...state,
-        chats: action.payload,
-      };
-    case 'RENAME_CHAT':
-      // Clone the chats array
-      const newChats = [...state.chats];
-      // Update the chat's name using the provided index
-      if (newChats[action.payload.index]) {
-        newChats[action.payload.index].name = action.payload.newName;
-      }
-      return { ...state, chats: newChats };
-
-
-      case 'UPDATE_PARTIAL_BOT_REPLY':
-    return {
-      ...state,
-      chats: state.chats.map((chat, index) =>
-        index === state.selectedChatIndex
-          ? {
-              ...chat,
-              chatHistory: chat.chatHistory.map((message) =>
-                message.timestamp === action.payload.timestamp
-                  ? { ...message, content: message.content + action.payload.chunk }
-                  : message
-              ),
-            }
-          : chat
-      ),
-    };
-
-
-    default:
-      return state;
-  }
-};
 
 function App() {
   const [showSettings, setShowSettings] = useState(false);
   const { chats, setChats, selectedChatIndex, setSelectedChatIndex, saveChats, saveSelectedChatIndex } = useChat();
+  const [showChat, setShowChat] = useState(true);
   const chatRef = useRef();
   const [models, setModels] = useState([]);
   const defaultState = {
@@ -115,6 +25,9 @@ function App() {
   };
   const [state, dispatch] = useReducer(chatReducer, defaultState);
   const selectedChat = chats[selectedChatIndex] || {};
+  const [showDataFetcher, setShowDataFetcher] = useState(false);
+  const [isEegEnabled, setIsEegEnabled] = useState(false);
+
   console.log('rendered app');
 
 
@@ -124,6 +37,10 @@ function App() {
     updatedChats[selectedChatIndex].persona = updatedPersona;
     state.chats = updatedChats;
     setChats(updatedChats);
+  };
+
+  const toggleChatVisibility = () => {
+    setShowChat(!showChat);
   };
   const handleSaveSettings = () => setShowSettings(false);
 
@@ -136,7 +53,7 @@ function App() {
       const data = await response.json();
       console.log('Local Models:', data.models);
       if (data.models && data.models.length > 0) {
-        const modelNames = data.models.map(model => model.name.split(':latest')[0]);
+        const modelNames = data.models.map(model => model.name);
         setModels(modelNames); // Update models state with just the names, without ':latest'
         const latestModel = data.models[data.models.length - 1];
         updateDefaultPersonaModel(latestModel.name);
@@ -198,30 +115,59 @@ function App() {
     }
   }, []); // Load chats from local storage on mount
 
+  useEffect(() => {
+    const savedEegState = localStorage.getItem('eegEnabled');
+    if (savedEegState !== null) {
+      setIsEegEnabled(JSON.parse(savedEegState));
+      }
+    }, []);
+
+    useEffect(() => {
+      localStorage.setItem('eegEnabled', JSON.stringify(isEegEnabled));
+    }, [isEegEnabled]);
+
+    const toggleEegFeature = () => {
+      setIsEegEnabled(!isEegEnabled);
+    };
+
+
+
   return (
     <div className="App">
-      <ChatControlButtons onPersonaClick={handleChangePersona} />
       <main className="App-content">
         <ChatSidebar
-        chats={chats}
-        onSelectChat={setSelectedChatIndex}
-        onAddChat={handleAddChat}
-        onDeleteChat={handleDeleteChat}
-        selectedChatIndex={selectedChatIndex}
-        setChats={setChats}
-        />
-        <div className={`chat-section ${showSettings ? 'hidden' : ''}`}>
-        <Chat
-          ref={chatRef}
+          chats={chats}
+          onSelectChat={setSelectedChatIndex}
+          onAddChat={handleAddChat}
+          onDeleteChat={handleDeleteChat}
           selectedChatIndex={selectedChatIndex}
-          chats={state.chats}
-          isLoading={state.isLoading}
-          dispatch={dispatch}
-          saveChats={saveChats}
           setChats={setChats}
+        />
+        <div className={`chat-section ${!showChat ? 'hidden' : ''}`}>
+          <Chat
+            ref={chatRef}
+            selectedChatIndex={selectedChatIndex}
+            chats={state.chats}
+            isLoading={state.isLoading}
+            dispatch={dispatch}
+            saveChats={saveChats}
+            setChats={setChats}
+            eEG={isEegEnabled}
           />
         </div>
-        {showSettings && <PersonaSettings persona={selectedChat.persona} models={models} onChange={handlePersonaChange} onSubmit={handleSaveSettings} updateModels={fetchLocalModels}/>}
+        <RightSidebar
+          setShowChat={setShowChat}
+          showChat={showChat}
+          showDataFetcher={showDataFetcher}
+          setShowDataFetcher={setShowDataFetcher}
+          isEegEnabled={isEegEnabled}
+          showSettings={showSettings}
+          persona={selectedChat.persona}
+          models={models}
+          onChangePersonaSettings={handlePersonaChange}
+          onSubmitPersonaSettings={handleSaveSettings}
+          fetchModels={fetchLocalModels}
+        />
       </main>
     </div>
   );

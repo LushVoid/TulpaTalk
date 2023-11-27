@@ -1,0 +1,64 @@
+# Ollama Model File Boilerplate Example
+
+# Base model specification
+FROM your_base_model_here
+
+# PARAMETER settings with descriptions and example usages:
+
+# Mirostat sampling for controlling perplexity
+PARAMETER mirostat 0 # 0 = disabled, 1 = Mirostat, 2 = Mirostat 2.0
+
+# Mirostat eta for learning rate adjustments
+PARAMETER mirostat_eta 0.1 # Lower value for slower adjustments, higher for quicker response
+
+# Mirostat tau for balance between coherence and diversity
+PARAMETER mirostat_tau 5.0 # Lower value for more focused text
+
+# Context window size
+PARAMETER num_ctx 4096 # Default: 2048
+
+# Number of GQA groups in transformer layer
+PARAMETER num_gqa 1 # Required for some models
+
+# Number of layers to send to GPU(s)
+PARAMETER num_gpu 50 # Defaults to 1 on macOS for metal support, 0 to disable
+
+# Number of threads for computation
+PARAMETER num_thread 8 # Recommended to match physical CPU cores
+
+# Repeat last N tokens to prevent repetition
+PARAMETER repeat_last_n 64 # 0 = disabled, -1 = num_ctx
+
+# Repeat penalty for penalizing repetitions
+PARAMETER repeat_penalty 1.1 # Higher value penalizes more
+
+# Model temperature for creativity
+PARAMETER temperature 0.7 # Higher is more creative, lower is more coherent
+
+# Seed for predictable generation
+PARAMETER seed 42 # Specific number for same text for same prompt
+
+# Stop sequences
+PARAMETER stop "AI assistant:" # Pattern to stop text generation
+
+# Tail free sampling (TFS) for reducing impact of less probable tokens
+PARAMETER tfs_z 1 # Higher value reduces impact more
+
+# Maximum tokens to predict
+PARAMETER num_predict 42 # -1 for infinite generation, -2 to fill context
+
+# Top K for reducing probability of generating nonsense
+PARAMETER top_k 40 # Higher value for diversity, lower for conservatism
+
+# Top P works with top K for text diversity
+PARAMETER top_p 0.9 # Higher value for diversity, lower for focused text
+
+# TEMPLATE for the full prompt template
+TEMPLATE """
+### Your Template Here
+"""
+
+# SYSTEM prompt
+SYSTEM """Your system message here"""
+
+# ADAPTER and LICENSE can be added as needed

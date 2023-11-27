@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { parseModelfileToJson, parametersList } from './modelfileHandler'; // Assumed to be utility functions for parsing
 const { Ollama } = require("langchain/llms/ollama");
 const { StringOutputParser } = require("langchain/schema");
+
 
 
 function createFinalPrompt(chatHistory, persona) {
@@ -144,4 +146,73 @@ export async function fetchBotReply(messageId, chatHistory, updateBotReply, pers
     // Ensure that the loading state is set to false when done
     dispatch({ type: 'SET_LOADING_STATE', payload: false });
   }
+}
+
+export const useModelParameters = (persona) => {
+    const [parameters, setParameters] = useState({
+        mirostat: '1',
+        temperature: '0.7',
+        num_ctx: '4096',
+    });
+
+    const fetchAndSetParameters = useCallback(async () => {
+        try {
+            const response = await fetch('http://localhost:11434/api/show', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: persona.model }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error fetching model: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const parsed = parseModelfileToJson(data.modelfile, parametersList);
+            setParameters(parsed.parameters);
+        } catch (error) {
+            console.error('Error fetching modelfile:', error);
+        }
+    }, [persona.model]);
+
+    return { parameters, fetchAndSetParameters };
+}
+
+
+export const useSubmitHandler = ({ persona, onSubmit, updateModels, newSysPrompt }) => {
+    return useCallback(async (event) => {
+        event.preventDefault();
+        onSubmit(); // Assuming this is a necessary function call prior to the fetch requests
+
+        try {
+            const showResponse = await fetch('http://localhost:11434/api/show', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: persona.model }),
+            });
+
+            if (!showResponse.ok) {
+                throw new Error(`Show API response error: ${showResponse.status}`);
+            }
+
+            const showData = await showResponse.json();
+            const updatedModelfile = newSysPrompt(showData.modelfile, persona.system);
+
+            const buildModelResponse = await fetch('http://localhost:5000/api/build-model', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ modelfile: updatedModelfile, name: persona.name }),
+            });
+
+            if (!buildModelResponse.ok) {
+                throw new Error(`Build Model API response error: ${buildModelResponse.status}`);
+            }
+
+            await buildModelResponse.json(); // Assuming you might need to do something with this response
+            updateModels(); // Update models after successful submission
+
+        } catch (error) {
+            console.error('Error during form submission:', error);
+        }
+    }, [persona, onSubmit, updateModels, newSysPrompt]);
 }
