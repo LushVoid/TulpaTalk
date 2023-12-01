@@ -15,162 +15,12 @@ body {
   flex-direction: column;
 }
 
-.App * {
-  border-radius: 15px;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-#eeg {
-  width: 50%;
-  margin: auto;
-}
-
-#eeg-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 500px;
-    height: 500px;
-    margin: 30px auto;
-    border: 1px solid #ddd;
-    border-radius: 50%;
-    overflow: hidden;
-    position: relative;
-}
-
-.circle-200, .circle-150, .circle-100, .circle-50 {
-    position: absolute;
-    border-radius: 50%;
-    border: 1px solid #ddd;
-}
-
-.circle-200 {
-    width: 57.14%; /* 200/350 * 100 */
-    height: 57.14%; /* 200/350 * 100 */
-}
-
-.circle-150 {
-    width: 42.86%; /* 150/350 * 100 */
-    height: 42.86%; /* 150/350 * 100 */
-}
-
-.circle-100 {
-    width: 28.57%; /* 100/350 * 100 */
-    height: 28.57%; /* 100/350 * 100 */
-}
-
-.circle-50 {
-    width: 3%; /* 50/350 * 100 */
-    height: 3%; /* 50/350 * 100 */
-}
-
-.dynamic-circle {
-    border-radius: 50%;
-    background: green;
-    position: absolute;
-    z-index: 10;
-    transition: width 1s ease-in-out, height 1s ease-in-out;
-    box-shadow: 20px 20px 10px rgba(0, 0, 0, 1);
-}
-
-#band-selection {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.band-checkbox {
-  margin-right: 10px; /* Adjust the space between checkboxes */
-}
-
-
-.brain-icon-container.disabled {
-  opacity: 0.1; /* 10% opacity */
-}
-
-
-#eeg-text {
-  width: 90%;
-  margin: auto;
-  text-align: justify;
-}
-.right-button-container {
-  position: absolute; /* or 'fixed' depending on your needs */
-  top: 0; /* Align to the top */
-  right: 0; /* Align to the right */
-  height: 100%;
-  width: 80px;;
-  z-index: 1000;
-}
-#addontxt {
-  border-bottom: dashed 1px;
-  border-radius: 0px;
-  font-size: 70%;
-}
-
-.icon-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  transition: background-color 0.3s;
-  padding: 5px;
-  border-radius: 5px;
-  float: right; /* Adjusted to float right */
-
-  top: 6px;  /* Adjust this value so it's below the .persona-button-box */
-  right: 10px;
-  margin: 10px;
-  z-index: 1000; /* Ensures it's above other content */
-}
-
-.brain-icon-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  transition: background-color 0.3s;
-  padding: 5px;
-  border-radius: 5px;
-  float: right; /* Adjusted to float right */
-  position: absolute;
-  top: 60px;  /* Adjust this value so it's below the .persona-button-box */
-  right: 10px;
-  margin: 10px;
-  z-index: 1000; /* Ensures it's above other content */
-}
-
-.brain-icon-container:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.brain-icon {
-  font-size: 24px; /* Adjust the size as needed */
-  color: #ffffff; /* Adjust the color as needed */
-  cursor: pointer;
-}
-
-/* Additional styling for any text or labels you might have inside the .brain-icon-container */
-.brain-icon-container span {
-  font-size: 0.75rem;
-  color: #ffffff;
-}
-
-
 .hover-content {
   display: none;
   position: absolute;
   right: 0;
   top: 100%; /* Positioning right below the icon */
 }
-
-.brain-icon-container:hover .hover-content {
-  display: block; /* Show content on hover */
-}
-
 
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
@@ -186,42 +36,6 @@ t {
 h1 {
   margin-bottom: 0px;
 }
-@keyframes blink {
-  0%, 100% {
-    opacity: 0;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-.typing-dot {
-  display: inline-block;
-  margin-left: 2px;
-  animation: blink 1s infinite;
-}
-
-.typing-dot:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.typing-dot:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-.App-header {
-  min-height: 40vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  top: 0;
-  z-index: 1; /* Ensuring that .App-header is below .chat-box */
-  margin-top: 0; /* Remove top margin */
-  margin-bottom: 0; /* Remove bottom margin */
-}
-
 
 .App-link {
   color: #1F6FEB;
@@ -234,26 +48,6 @@ h1 {
   to {
     transform: rotate(360deg);
   }
-}
-
-.button-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  transition: background-color 0.3s;
-  padding: 5px;
-  border-radius: 5px;
-  float: left;
-}
-
-.button-box:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.button-box span {
-  font-size: 0.75rem;
-  color: #ffffff;
 }
 
 .persona-button-box {
@@ -279,17 +73,6 @@ h1 {
   margin: 10px;
 }
 
-
-.persona-settings {
-   min-width: 300px;
-   width: 50vw;
-   padding: 20px;
-   border-radius: 5px;
-   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-   margin: auto; /* Centers the element in the available space */
-   margin-top: 10%;
-}
-
 #editTulpa {
   float: right;
 }
@@ -302,36 +85,6 @@ ul {
   text-align: left;
 }
 
-.form-group {
-  margin-bottom: 15px;
-  max-width: 80vw;
-}
-.form-group-long {
-  margin-bottom: 15px;
-  max-width: 80vw;
-}
-
-.form-group textarea {
-  width: 100%;
-  box-sizing: border-box; /* Makes sure padding doesn't affect width */
-  resize: vertical; /* Allows user to manually resize vertically */
-}
-
-.form-group-long textarea {
-  width: 100%;
-  height: 300px; /* This sets the height directly */
-  box-sizing: border-box;
-  resize: vertical;
-  margin-bottom: 15px;
-  /* Add !important to test specificity issues */
-  height: 300px !important;
-}
-
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-}
 
 .hidden {
   display: none;
@@ -541,25 +294,21 @@ pre {
   color: black;
 }
 
-.code-block-container {
-  position: relative;
-}
-
 .copy-button {
   position: absolute;
-  right: 0;
+  right: 1;
   top: 0;
   border: none;
   background: #ddd;
-  padding: 5px;
-  border-radius: 4px;
+  padding:5px;
+  margin-left: -5px;
+  margin-top: -3vh;
   cursor: pointer;
   font-size: 12px;
   transition: transform 0.15s ease;
 }
 .copy-button-2 {
-  position:relative;
-  float: right;
+  position: relative;
   right: 0;
   top: 0;
   height: 0px;
@@ -590,13 +339,6 @@ pre {
   transform: scale(1); /* Enlarge the button */
   color:white;
   background-color: #58A6FF;
-}
-
-
-.code-block {
-  /* Add any styles you want for your code block here */
-  color: #67ff30;
-  background-color: black;
 }
 
 input {
@@ -632,101 +374,14 @@ button:hover {
   background-color: #45a049;
 }
 
-
-.chat-container {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  max-width: 61vw;
-  min-width: 700px;
-  margin: 0 auto;
-}
-
-.infobar {
-  border-bottom: solid 1px;
-  border-radius: 0px;
-  height: 6vh;
-  opacity: 0;
-  transform: translateY(-40%);
-  transition: transform 1s ease-in-out, opacity 1s ease-in-out;
-}
-.infobar:hover {
-  opacity: 1;
-  transform: translateY(0%);
-}
-.infostat  {
-  width: 33%;
-}
-.infostattxt  {
-  margin-top: -0vh;
+.textarea-button-container {
+  position: relative;
 }
 
 .message-container {
   display: flex;
   flex-direction: column-reverse; /* Ensure new messages appear at the bottom */
 }
-
-.input-container {
-  position: relative;
-  margin-top: 2px;
-  height: 8vh;
-  width: 100%;
-
-}
-
-.textarea-button-container {
-  position: relative;
-}
-
-
-
-
-.textarea-wrapper {
-  position: relative;
-  padding-left: 0px; /* Adjust as needed to create space for buttons */
-
-  border: solid 1px;
-  min-height: 2vh; /* Minimum height */
-  max-height: 8vh; /* Maximum height - same as the wrapper */
-  border-radius: 8px;
-}
-
-
-.buttons-container {
-  position: absolute;
-  top: 0; /* Align with the top of the textarea-wrapper */
-  right: 10px; /* Adjust to place inside the textarea-wrapper */
-  display: flex;
-  flex-direction: row;
-  align-items: start;
-  margin-top: 2px;
-}
-
-
-
-#ChatInput {
-  width: 100%; /* Adjust width to account for padding */
-  height: 100%; /* Take full height of the wrapper */
-  min-height: 2vh; /* Minimum height */
-  max-height: 8vh; /* Maximum height - same as the wrapper */
-  background: none;
-  color: white;
-  font-style: inherit;
-  font-size: 15px;
-  box-sizing: border-box;
-  overflow-y: auto; /* Scroll vertically when content exceeds height */
-  resize: none;
-  border: none;
-  padding-right: 0px; /* Right padding for button space */
-  scrollbar-width: none; /* For Firefox */
-  -ms-overflow-style: none;
-  margin-left: -0px;
-
-  &:focus {
-    outline: none;
-  }
-}
-
 
 input {
   flex-grow: 1;
@@ -749,72 +404,6 @@ button {
   cursor: pointer;
 }
 
-
-button#send, button#mic {
-  padding-top: 1vh;
-  border-radius: 0px;
-  width: 100%;
-  height: 100%;
-  margin: auto;
-  border: solid 0px;
-  color: rgba(265, 265, 265, 0.5);
-  background-color: rgba(0, 0, 0, 0);
-  transition: margin-top 0.3s ease, margin-right 0.3s ease;
-}
-
-button#mic {
-  border-left: solid 1px;
-
-  border-color: rgba(265, 265, 265, 0.1);
-}
-button#send:hover, button#mic:hover {
-  color: rgba(265, 265, 265, 0.95);
-  transition: 1s;
-  transition: margin-top 0.3s ease, margin-right 0.3s ease;
-
-}
-
-
-
-
-button#mic.listening {
-  animation: pulse 2s infinite;
-  color: white;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0));
-  border: solid 2px;
-  border-radius: 100%;
-  border-color: red;
-  z-index: 100;
-  position:static;
-  overflow: hidden;
-
-  transition: margin-top 0.3s ease, margin-right 0.3s ease;
-}
-
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(3);
-    opacity: 0.7;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-
-
 button:hover {
   background-color: #34A853;
-}
-
-.logo {
-  height: 25vh; /* or whatever size you prefer */
-  float: right;
-  margin-top: 0px;
 }

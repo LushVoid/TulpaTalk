@@ -69,8 +69,10 @@
     /* Set top and right to position the element within its container */
     bottom: 0; /* Align to the bottom of the container */
     right: 0;
+    margin-left: 2vw;
     z-index: 1; /* Ensure it's above other elements */
 }
+
 
 .message:hover .message-actions {
     /* Expand size on hover and increase opacity */
@@ -150,4 +152,37 @@
 .message p {
   margin: 0px;
   text-align: justify;
+}
+
+.code-block-container {
+  position: relative;
+}
+
+.code-block {
+  /* Add any styles you want for your code block here */
+  color: #67ff30;
+  background-color: black;
+}
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.typing-dot {
+  display: inline-block;
+  margin-left: 2px;
+  animation: blink 1s infinite;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
 }

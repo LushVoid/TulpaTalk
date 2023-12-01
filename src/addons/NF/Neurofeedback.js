@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
 import 'chart.js/auto';
+import './style.css';
 
 const BAND_COLORS = ['indigo', 'violet', 'blue', 'green', 'orange', 'red', 'yellow'];
 const BAND_LABELS = ['Band A', 'Band B', 'Band C', 'Band D', 'Band E', 'Band F', 'Band G'];

@@ -4,6 +4,7 @@ import ImportExportIcon from '@mui/icons-material/ImportExport';
 import SaveAltIcon from '@mui/icons-material/SaveAlt';
 import AddIcon from '@mui/icons-material/Add';
 import ChatIcon from '@mui/icons-material/Chat';
+import './Sidebar.css';
 
 function ChatSidebar({ chats, onSelectChat, onAddChat, onDeleteChat, selectedChatIndex, setChats }) {
   const [hoverStatus, setHoverStatus] = useState('');

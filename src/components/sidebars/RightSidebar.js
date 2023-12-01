@@ -5,6 +5,7 @@ import PsychologyIcon from '@mui/icons-material/Psychology';
 import IconButton from '@mui/material/IconButton';
 import AccountBoxIcon from '@mui/icons-material/AccountBox';
 import CloseIcon from '@mui/icons-material/Close';  // Import CloseIcon
+import './Sidebar.css';
 
 const RightSidebar = ({
   isEegEnabled,

@@ -4,6 +4,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import Switch from '@mui/material/Switch';
 import Slider from '@mui/material/Slider';
 import { useModelParameters, useSubmitHandler } from '../hooks'; // Custom hooks
+import './Sidebar.css';
 
 function PersonaSettings({ persona, onChange, onSubmit, models, updateModels }) {
     const [isEditing, setIsEditing] = useState(false);

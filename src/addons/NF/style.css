@@ -1,0 +1,70 @@
+
+
+#eeg {
+  width: 50%;
+  margin: auto;
+}
+
+#eeg-text {
+  width: 90%;
+  margin: auto;
+  text-align: justify;
+}
+
+#eeg-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 500px;
+    height: 500px;
+    margin: 30px auto;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    overflow: hidden;
+    position: relative;
+}
+
+#band-selection {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.band-checkbox {
+  margin-right: 10px; /* Adjust the space between checkboxes */
+}
+
+.circle-200, .circle-150, .circle-100, .circle-50 {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+}
+
+.circle-200 {
+    width: 57.14%; /* 200/350 * 100 */
+    height: 57.14%; /* 200/350 * 100 */
+}
+
+.circle-150 {
+    width: 42.86%; /* 150/350 * 100 */
+    height: 42.86%; /* 150/350 * 100 */
+}
+
+.circle-100 {
+    width: 28.57%; /* 100/350 * 100 */
+    height: 28.57%; /* 100/350 * 100 */
+}
+
+.circle-50 {
+    width: 3%; /* 50/350 * 100 */
+    height: 3%; /* 50/350 * 100 */
+}
+
+.dynamic-circle {
+    border-radius: 50%;
+    background: green;
+    position: absolute;
+    z-index: 10;
+    transition: width 1s ease-in-out, height 1s ease-in-out;
+    box-shadow: 20px 20px 10px rgba(0, 0, 0, 1);
+}

@@ -7,6 +7,7 @@ import { Ollama } from "langchain/llms/ollama";
 import { BufferMemory, ChatMessageHistory } from "langchain/memory";
 import Logo from './QuillBot.png';
 import SpeedIcon from '@mui/icons-material/Speed';
+import './Chat.css';
 
 
 const getEEGData = async () => {
@@ -245,7 +246,7 @@ const Chat = forwardRef(({ selectedChatIndex, chats, dispatch, saveChats, isLoad
 
   return (
     <div className="chat-container">
-    <TextToSpeech textToSpeak={textToSpeak} />
+    <TextToSpeech id='invisible' textToSpeak={textToSpeak} />
     <div className='infobar'>
       <div className='infostat'>
         <SpeedIcon/>
