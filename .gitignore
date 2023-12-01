@@ -1,1 +1,3 @@
 node_modules/
+server/server.log
+server/smooth_band_powers.csv

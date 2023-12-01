@@ -17,18 +17,18 @@ const ChatInput = React.memo(function ChatInput({ onSendMessage, isLoading }) {
 
   const [timeoutId, setTimeoutId] = useState(null);
 
-  const startListening = () => {
-    SpeechRecognition.startListening({ continuous: true });
-  };
+  const toggleListening = () => {
+    if (!listening) {
+      SpeechRecognition.startListening({ continuous: true });
+    } else {
+      SpeechRecognition.stopListening();
 
-  const stopListening = () => {
-    SpeechRecognition.stopListening();
-    // Clear any existing timeout
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-      setTimeoutId(null);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        setTimeoutId(null);
+      }
     }
-  };
+  }
 
   useEffect(() => {
     // Restart the timeout every time the transcript changes
@@ -37,7 +37,7 @@ const ChatInput = React.memo(function ChatInput({ onSendMessage, isLoading }) {
         clearTimeout(timeoutId);
       }
       const id = setTimeout(() => {
-        stopListening();
+        SpeechRecognition.stopListening();
       }, 3000); // 3 seconds timeout after the last word
       setTimeoutId(id);
     }
@@ -116,7 +116,7 @@ const ChatInput = React.memo(function ChatInput({ onSendMessage, isLoading }) {
           {!isLoading && (listening || showButtons) && (
             <button
               id='mic'
-              onClick={startListening}
+              onClick={toggleListening}
               className={listening ? "listening" : ""}
             >
               <MicIcon />

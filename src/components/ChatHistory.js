@@ -2,6 +2,8 @@ import React, { useLayoutEffect, useRef, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { CodeBlock } from './CodeBlock';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import CheckIcon from '@mui/icons-material/Check';
+
 
 function transformCodeInput(text) {
   if (typeof text !== 'string') {
@@ -71,6 +73,11 @@ function ChatHistory({ chatHistory, isLoading }) {
       <div className="invisible-element" />
       {chatHistory.map((message) => (
         <div key={message.timestamp} className={`message ${message.role === 'user' ? 'user' : 'bot'}`}>
+        <div className="message-actions">
+          <div className={`copy-button-2 ${isClicked ? 'clicked' : ''}`} onClick={() => handleCopyClick(message.content)} style={{ cursor: 'pointer' }}>
+          {isClicked && <CheckIcon /> || <ContentCopyIcon />}
+          </div>
+        </div>
           <div className="message-content">
             <ReactMarkdown
               components={{
@@ -79,11 +86,6 @@ function ChatHistory({ chatHistory, isLoading }) {
             >
               {transformCodeInput(message.content)}
             </ReactMarkdown>
-            <div className="message-actions">
-              <div className={`copy-button-2 ${isClicked ? 'clicked' : ''}`} onClick={() => handleCopyClick(message.content)} style={{ cursor: 'pointer' }}>
-              {isClicked && <p>Copied!</p> || <ContentCopyIcon />}
-              </div>
-            </div>
           </div>
         </div>
       ))}

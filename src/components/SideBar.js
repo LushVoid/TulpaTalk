@@ -100,7 +100,12 @@ function ChatSidebar({ chats, onSelectChat, onAddChat, onDeleteChat, selectedCha
             onClick={() => onSelectChat(index)}
             className={selectedChatIndex === index ? 'selected-chat' : ''}
           >
-
+          <div id="chaticon"><button
+            onClick={(e) => { e.stopPropagation(); onDeleteChat(index); }}
+            className="delete-chat-button"
+          >
+          <CloseIcon />
+          </button><ChatIcon /></div>
             {editingIndex === index ? (
               <input
                 type="text"
@@ -115,12 +120,6 @@ function ChatSidebar({ chats, onSelectChat, onAddChat, onDeleteChat, selectedCha
               <span id="chatnames" onDoubleClick={() => handleEditChatName(index)}>{chat.name} </span></div>
             )}
 
-            <div id="chaticon"><button
-              onClick={(e) => { e.stopPropagation(); onDeleteChat(index); }}
-              className="delete-chat-button"
-            >
-            <CloseIcon />
-            </button><ChatIcon /></div>
           </li>
         ))}
       </ul>

@@ -126,7 +126,7 @@ const Chat = forwardRef(({ selectedChatIndex, chats, dispatch, saveChats, isLoad
       for await (const chunk of newName) {
         nn += chunk;
       }
-      nn = nn.replace(/['"]+/g, '').split(' ').slice(0, 3).join(' ');
+      nn = nn.replace(/['"]+/g, ' '); // fix
       chats[selectedChatIndex].name = nn;
       dispatch({
         type: 'RENAME_CHAT',
