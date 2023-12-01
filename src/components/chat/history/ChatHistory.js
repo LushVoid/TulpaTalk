@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import { CodeBlock } from './CodeBlock';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckIcon from '@mui/icons-material/Check';
+import './History.css';
 
 
 function transformCodeInput(text) {

@@ -1,15 +1,12 @@
 import React, { useState, useRef, useEffect, useMemo, useReducer, } from 'react';
-import Chat from './components/Chat';
-import PersonaSettings from './components/PersonaSettings';
-import ChatSidebar from './components/SideBar';
+import Chat from './components/chat/Chat';
+import ChatSidebar from './components/sidebars/SideBar';
+import RightSidebar from './components/sidebars/RightSidebar'; // Import the new component
+import { chatReducer } from './components/chat/chatReducer'; // Import chatReducer
 import './App.css';
-import Logo from './imgs/QuillBot.png';
-import tq from './persona';
+import tq from './modelfiles/persona';
 import useChat from './hooks/useChat';
-import TextToSpeech from './components/TextToSpeech';
-import RightSidebar from './components/RightSidebar'; // Import the new component
 import PsychologyIcon from '@mui/icons-material/Psychology'; // This represents the brain icon
-import { chatReducer } from './chatReducer'; // Import chatReducer
 
 
 function App() {
@@ -129,8 +126,6 @@ function App() {
     const toggleEegFeature = () => {
       setIsEegEnabled(!isEegEnabled);
     };
-
-
 
   return (
     <div className="App">

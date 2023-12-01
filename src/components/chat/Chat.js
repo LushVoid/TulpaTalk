@@ -1,11 +1,11 @@
 import React, {  useState, useEffect, useRef, useReducer, forwardRef, useCallback } from 'react';
 import ChatInput from './ChatInput';
-import ChatHistory from './ChatHistory';
-import { fetchBotReply } from './hooks';
+import ChatHistory from './history/ChatHistory';
+import TextToSpeech from './TextToSpeech';
+import { fetchBotReply } from '../hooks';
 import { Ollama } from "langchain/llms/ollama";
 import { BufferMemory, ChatMessageHistory } from "langchain/memory";
-import TextToSpeech from './TextToSpeech';
-import Logo from '../imgs/QuillBot.png';
+import Logo from './QuillBot.png';
 import SpeedIcon from '@mui/icons-material/Speed';
 
 

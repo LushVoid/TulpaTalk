@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import tq from '../persona';
+import tq from '../modelfiles/persona';
 
 function useChat() {
   const [chats, setChats] = useState(() => {

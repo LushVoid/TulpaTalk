@@ -1,13 +1,26 @@
-import React, { useRef, useCallback, useEffect, useState } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import SendIcon from '@mui/icons-material/Send';
 import MicIcon from '@mui/icons-material/Mic';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 
-
-const ChatInput = React.memo(function ChatInput({ onSendMessage, isLoading }) {
+// Custom hook for managing textarea
+function useTextarea() {
   const textareaRef = useRef(null);
-  const [showButtons, setShowButtons] = useState(true); // New state variable
 
+  const resizeTextarea = (value) => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+    return value.length <= 67; // derived state for showing buttons
+  };
+
+  return { textareaRef, resizeTextarea };
+}
+
+// Custom hook for speech recognition
+function useSpeech(timeoutDuration = 3000) {
   const {
     transcript,
     listening,
@@ -17,31 +30,40 @@ const ChatInput = React.memo(function ChatInput({ onSendMessage, isLoading }) {
 
   const [timeoutId, setTimeoutId] = useState(null);
 
-  const toggleListening = () => {
+  // Function to toggle listening
+  const toggleListening = useCallback(() => {
     if (!listening) {
       SpeechRecognition.startListening({ continuous: true });
     } else {
       SpeechRecognition.stopListening();
-
       if (timeoutId) {
         clearTimeout(timeoutId);
         setTimeoutId(null);
       }
     }
-  }
+  }, [listening, timeoutId]);
 
+  // Restart timeout when transcript changes
   useEffect(() => {
-    // Restart the timeout every time the transcript changes
     if (transcript) {
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
       const id = setTimeout(() => {
         SpeechRecognition.stopListening();
-      }, 3000); // 3 seconds timeout after the last word
+      }, timeoutDuration);
       setTimeoutId(id);
     }
-  }, [transcript]);
+  }, [transcript, timeoutId, timeoutDuration]);
+
+  return { transcript, listening, resetTranscript, toggleListening };
+}
+
+const ChatInput = React.memo(function ChatInput({ onSendMessage, isLoading }) {
+  const { textareaRef, resizeTextarea } = useTextarea();
+  const { transcript, listening, resetTranscript, toggleListening } = useSpeech();
+
+  const [showButtons, setShowButtons] = useState(true);
 
   const handleKeyPress = useCallback((event) => {
     if (event.key === 'Enter' && !event.shiftKey) {
@@ -49,24 +71,21 @@ const ChatInput = React.memo(function ChatInput({ onSendMessage, isLoading }) {
       if (!isLoading) {
         onSendMessage(textareaRef.current.value);
         textareaRef.current.value = '';
+        setShowButtons(true); // Reset button visibility
       }
     }
   }, [onSendMessage, isLoading]);
 
   const handleInput = useCallback((event) => {
-    const textarea = event.target;
-    textarea.style.height = 'auto';
-    textarea.style.height = `${textarea.scrollHeight}px`;
-
-    // Calculate number of characters
-    const c = textarea.value.length;
-    setShowButtons(c <= 67);
+    const show = resizeTextarea(event.target.value);
+    setShowButtons(show);
   }, []);
 
   const handleSendClick = () => {
     if (!isLoading) {
       onSendMessage(textareaRef.current.value);
       textareaRef.current.value = '';
+      setShowButtons(true); // Reset button visibility
     }
   };
 
@@ -81,16 +100,18 @@ const ChatInput = React.memo(function ChatInput({ onSendMessage, isLoading }) {
       onSendMessage(transcript);
       resetTranscript();
       textareaRef.current.value = '';
+      setShowButtons(true); // Reset button visibility
     }
   }, [transcript, listening, onSendMessage, resetTranscript]);
 
   useEffect(() => {
-    // Check if loading is finished, then show buttons
     if (!isLoading) {
       setShowButtons(true);
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'initial';
+      }
     }
-    textareaRef.current.style.height = 'initial'; // Reset the height of the textarea
-  }, [isLoading]); // Effect runs when isLoading changes
+  }, [isLoading]);
 
   return (
     <div className="input-container">
@@ -102,7 +123,6 @@ const ChatInput = React.memo(function ChatInput({ onSendMessage, isLoading }) {
           onInput={handleInput}
         />
         <div className="buttons-container">
-          {/* Show Send button based on showButtons and isLoading */}
           {!isLoading && showButtons && (
             <button
               id='send'
@@ -112,7 +132,6 @@ const ChatInput = React.memo(function ChatInput({ onSendMessage, isLoading }) {
               <SendIcon />
             </button>
           )}
-          {/* Always show Mic button when listening, otherwise depend on showButtons */}
           {!isLoading && (listening || showButtons) && (
             <button
               id='mic'
@@ -125,7 +144,6 @@ const ChatInput = React.memo(function ChatInput({ onSendMessage, isLoading }) {
         </div>
       </div>
     </div>
-
   );
 });
 

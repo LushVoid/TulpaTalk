@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import Neurofeedback from '../addons/NF/Neurofeedback';
-import ChatControlButtons from '../components/ChatControlButtons';
-import PersonaSettings from '../components/PersonaSettings';
+import Neurofeedback from '../../addons/NF/Neurofeedback';
+import PersonaSettings from './PersonaSettings';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import IconButton from '@mui/material/IconButton';
 import AccountBoxIcon from '@mui/icons-material/AccountBox';

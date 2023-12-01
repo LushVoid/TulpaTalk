@@ -3,7 +3,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import CloseIcon from '@mui/icons-material/Close';
 import Switch from '@mui/material/Switch';
 import Slider from '@mui/material/Slider';
-import { useModelParameters, useSubmitHandler } from './hooks'; // Custom hooks
+import { useModelParameters, useSubmitHandler } from '../hooks'; // Custom hooks
 
 function PersonaSettings({ persona, onChange, onSubmit, models, updateModels }) {
     const [isEditing, setIsEditing] = useState(false);
